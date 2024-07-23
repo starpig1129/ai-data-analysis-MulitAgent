@@ -1,5 +1,5 @@
 .env
-*.log
+agent.log
 *.csv
 data_storage
 *__pycache__/
