@@ -1,0 +1,5 @@
+.env
+.log
+.csv
+data_storage
+*__pycache__/
