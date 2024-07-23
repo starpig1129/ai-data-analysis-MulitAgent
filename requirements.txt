@@ -1,0 +1,14 @@
+arxiv==2.1.3
+beautifulsoup4==4.12.3
+ipykernel
+ipython
+jupyter-client
+jupyter_core
+langchain==0.2.10
+langchain-community==0.2.9
+langchain-openai==0.1.17
+langgraph==0.1.9
+pandas==2.2.2
+python-dotenv==1.0.1
+selenium==4.23.0
+wikipedia==1.4.0
