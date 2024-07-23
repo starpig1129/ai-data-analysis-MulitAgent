@@ -4,9 +4,9 @@
 
 ## Overview
 
-This is an AI-powered research assistant system that utilizes multiple specialized agents to assist in tasks such as data analysis, visualization, and report generation. The system employs LangChain, OpenAI's GPT models, and LangGraph to handle complex research processes.
+This is an advanced AI-powered research assistant system that utilizes multiple specialized agents to assist in tasks such as data analysis, visualization, and report generation. The system employs LangChain, OpenAI's GPT models, and LangGraph to handle complex research processes, integrating diverse AI architectures for optimal performance.
 
-## Features
+## Key Features
 
 - Hypothesis generation and validation
 - Data processing and analysis
@@ -15,6 +15,23 @@ This is an AI-powered research assistant system that utilizes multiple specializ
 - Code generation and execution
 - Report writing
 - Quality review and revision
+- **Diverse Architectural Integration**: 
+  - Supervisor agents for overseeing the analysis process
+  - Chain-of-thought reasoning for complex problem-solving
+  - Critic agents for quality assurance and error checking
+- **Innovative Note Taker Agent**: 
+  - Continuously records the current state of the project
+  - Provides a more efficient alternative to transmitting complete historical information
+  - Enhances the system's ability to maintain context and continuity across different analysis stages
+- **Adaptive Workflow**: Dynamically adjusts its analysis approach based on the data and task at hand
+
+## Why It's Unique
+
+The integration of a dedicated Note Taker agent sets this system apart from traditional data analysis pipelines. By maintaining a concise yet comprehensive record of the project's state, the system can:
+
+1. Reduce computational overhead
+2. Improve context retention across different analysis phases
+3. Enable more coherent and consistent analysis outcomes
 
 ## System Requirements
 
@@ -25,7 +42,7 @@ This is an AI-powered research assistant system that utilizes multiple specializ
 
 1. Clone the repository:
 ```bash
-git clone [https://github.com/starpig1129/Multi-agent-DataAnalysis.gitL]
+git clone https://github.com/starpig1129/Multi-agent-DataAnalysis.git
 ```
 2. Install dependencies:
 ```bash
