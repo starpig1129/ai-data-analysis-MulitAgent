@@ -165,4 +165,43 @@ def _create_error_state(state: State, error_message: AIMessage, name: str, error
         **{k: v for k, v in state.items() if k not in ["messages", "sender", "needs_revision", "error_type"]}
     )
 
+def human_review_node(state: State) -> State:
+    """
+    Display current state to the user and update the state based on user input.
+    Includes error handling for robustness.
+    """
+    try:
+        print("Current research progress:")
+        print(state)
+        print("\nDo you need additional analysis or modifications?")
+        
+        while True:
+            user_input = input("Enter 'yes' to continue analysis, or 'no' to end the research: ").lower()
+            if user_input in ['yes', 'no']:
+                break
+            print("Invalid input. Please enter 'yes' or 'no'.")
+        
+        if user_input == 'yes':
+            while True:
+                additional_request = input("Please enter your additional analysis request: ").strip()
+                if additional_request:
+                    state["messages"].append(HumanMessage(content=additional_request))
+                    state["needs_revision"] = True
+                    break
+                print("Request cannot be empty. Please try again.")
+        else:
+            state["needs_revision"] = False
+        
+        state["sender"] = "human"
+        logger.info("Human review completed successfully.")
+        return state
+    
+    except KeyboardInterrupt:
+        logger.warning("Human review interrupted by user.")
+        return None
+    
+    except Exception as e:
+        logger.error(f"An error occurred during human review: {str(e)}", exc_info=True)
+        return None
+    
 logger.info("Agent processing module initialized")

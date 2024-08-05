@@ -37,7 +37,7 @@ def google_search(query: Annotated[str, "The search query to use"]) -> str:
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
-        service = Service(os.getenv('CHROMEDRIVER_PATH', './chromedriver-linux64/chromedriver'))
+        service = Service(os.getenv('CHROMEDRIVER_PATH', './chromedriver/chromedriver'))
 
         with webdriver.Chrome(options=chrome_options, service=service) as driver:
             url = f"https://www.google.com/search?q={query}"
