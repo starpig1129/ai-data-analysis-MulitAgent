@@ -83,7 +83,7 @@ def create_agent(
 
     agent = create_openai_functions_agent(llm=llm, tools=tools, prompt=prompt)
     logger.info("Agent created successfully")
-    return AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=True)
+    return AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=False)
 
 def create_supervisor(llm: ChatOpenAI, system_prompt, members):
     logger.info("Creating supervisor")
@@ -149,7 +149,7 @@ def create_note_agent(
     return AgentExecutor.from_agent_and_tools(
         agent=agent, 
         tools=tools, 
-        verbose=True,
+        verbose=False,
     )
 
 logger.info("Agent creation module initialized")

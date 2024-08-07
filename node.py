@@ -119,7 +119,7 @@ def note_agent_node(state: State, agent: Any, name: str) -> State:
 
         new_messages = [create_message(msg, name) for msg in parsed_output.get("messages", [])]
         
-        messages = new_messages if new_messages else state.get("messages", [])
+        messages = new_messages if new_messages else current_messages
         
         combined_messages = head_messages + messages + tail_messages
         
@@ -134,7 +134,7 @@ def note_agent_node(state: State, agent: Any, name: str) -> State:
             "report_section": str(parsed_output.get("report_section", state.get("report_section", ""))),
             "quality_review": str(parsed_output.get("quality_review", state.get("quality_review", ""))),
             "needs_revision": bool(parsed_output.get("needs_revision", state.get("needs_revision", False))),
-            "sender": str(parsed_output.get("sender", name))
+            "sender": 'note_agent'
         }
         
         logger.info("Updated state successfully")
@@ -157,13 +157,20 @@ def _create_error_state(state: State, error_message: AIMessage, name: str, error
     Create an error state when an exception occurs.
     """
     logger.info(f"Creating error state for {name}: {error_type}")
-    return State(
-        messages=state.get("messages", []) + [error_message],
-        sender=name,
-        needs_revision=True,
-        error_type=error_type,
-        **{k: v for k, v in state.items() if k not in ["messages", "sender", "needs_revision", "error_type"]}
-    )
+    error_state:State = {
+            "messages": state.get("messages", []) + [error_message],
+            "hypothesis": str(state.get("hypothesis", "")),
+            "process": str(state.get("process", "")),
+            "process_decision": str(state.get("process_decision", "")),
+            "visualization_state": str(state.get("visualization_state", "")),
+            "searcher_state": str(state.get("searcher_state", "")),
+            "code_state": str(state.get("code_state", "")),
+            "report_section": str(state.get("report_section", "")),
+            "quality_review": str(state.get("quality_review", "")),
+            "needs_revision": bool(state.get("needs_revision", False)),
+            "sender": 'note_agent'
+        }
+    return error_state
 
 def human_review_node(state: State) -> State:
     """

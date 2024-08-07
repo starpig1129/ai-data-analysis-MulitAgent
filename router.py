@@ -65,23 +65,9 @@ def QualityReview_router(state: State) -> NodeType:
         logger.info(f"Revision needed. Routing to: {result}")
         return result
     
-    process_decision = state.get("process_decision", "")
-    
-    if isinstance(process_decision, AIMessage):
-        process_decision = process_decision.content
-        logger.debug("Process decision is an AIMessage")
-    
-    if not process_decision or process_decision == "Error":
-        logger.info("No valid process decision. Routing to NoteTaker")
+    else:
         return "NoteTaker"
     
-    valid_decisions = {"Visualization", "Search", "Coder", "Report", "QualityReview"}
-    if process_decision in valid_decisions:
-        logger.info(f"Valid process decision: {process_decision}")
-        return process_decision
-    
-    logger.warning(f"Unexpected QualityReview_router decision: {process_decision}. Defaulting to 'NoteTaker'.")
-    return "NoteTaker"
 
 def process_router(state: State) -> ProcessNodeType:
     """

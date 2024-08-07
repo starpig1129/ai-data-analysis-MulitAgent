@@ -28,9 +28,6 @@ def collect_data(data_path: Annotated[str, "Path to the CSV file"] = './data.csv
 
     This function attempts to read a CSV file using different encodings.
 
-    Args:
-    data_path (str): Path to the CSV file. Defaults to './data.csv'.
-
     Returns:
     pandas.DataFrame: The data read from the CSV file.
 
@@ -58,16 +55,13 @@ def create_document(
     Create and save a text document in Markdown format.
 
     This function takes a list of points and writes them as numbered items in a Markdown file.
-
-    Args:
-    points (List[str]): List of points to be included in the document.
-    file_name (str): Name of the file to save the document.
-
+    
     Returns:
     str: A message indicating where the outline was saved or an error message.
     """
     try:
-        file_path = os.path.join(WORKING_DIRECTORY, file_name)
+        if WORKING_DIRECTORY not in file_name:
+            file_path = os.path.join(WORKING_DIRECTORY, file_name)
         logger.info(f"Creating document: {file_path}")
         with open(file_path, "w") as file:
             for i, point in enumerate(points):
@@ -90,16 +84,12 @@ def read_document(
     This function reads a document from the specified file and returns its content.
     Optionally, it can return a specific range of lines.
 
-    Args:
-    file_name (str): Name of the file to read.
-    start (Optional[int]): Starting line number to read from. Defaults to None.
-    end (Optional[int]): Ending line number to read to. Defaults to None.
-
     Returns:
     str: The content of the document or an error message.
     """
     try:
-        file_path = os.path.join(WORKING_DIRECTORY, file_name)
+        if WORKING_DIRECTORY not in file_name:
+            file_path = os.path.join(WORKING_DIRECTORY, file_name)
         logger.info(f"Reading document: {file_path}")
         with open(file_path, "r") as file:
             lines = file.readlines()
@@ -124,13 +114,6 @@ def write_document(
     Create and save a Markdown document.
 
     This function takes a string of content and writes it to a file.
-
-    Args:
-    content (str): Content to be written to the document.
-    file_name (str): Name of the file to save the document.
-
-    Returns:
-    str: A message indicating where the document was saved or an error message.
     """
     try:
         file_path = os.path.join(WORKING_DIRECTORY, file_name)
@@ -149,20 +132,31 @@ def edit_document(
     inserts: Annotated[Dict[int, str], "Dictionary of line numbers and text to insert"]
 ) -> str:
     """
-    Edit a Markdown document by inserting text at specific line numbers.
+    Edit a document by inserting text at specific line numbers.
 
     This function reads an existing document, inserts new text at specified line numbers,
     and saves the modified document.
 
     Args:
-    file_name (str): Name of the file to edit.
-    inserts (Dict[int, str]): Dictionary where keys are line numbers and values are text to insert.
+        file_name (str): Name of the file to edit.
+        inserts (Dict[int, str]): Dictionary where keys are line numbers and values are text to insert.
 
     Returns:
-    str: A message indicating the result of the editing operation or an error message.
+        str: A message indicating the result of the operation.
+
+    Example:
+        file_name = "example.txt"
+        inserts = {
+            1: "This is the first line to insert.",
+            3: "This is the third line to insert."
+        }
+        result = edit_document(file_name=file_name, inserts=inserts)
+        print(result)
+        # Output: "Document edited and saved to /path/to/example.txt"
     """
     try:
-        file_path = os.path.join(WORKING_DIRECTORY, file_name)
+        if WORKING_DIRECTORY not in file_name:
+            file_path = os.path.join(WORKING_DIRECTORY, file_name)
         logger.info(f"Editing document: {file_path}")
         with open(file_path, "r") as file:
             lines = file.readlines()

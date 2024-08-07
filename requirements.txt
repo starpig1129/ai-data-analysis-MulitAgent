@@ -12,3 +12,5 @@ pandas==2.2.2
 python-dotenv==1.0.1
 selenium==4.23.0
 wikipedia==1.4.0
+firecrawl-py
+matplotlib

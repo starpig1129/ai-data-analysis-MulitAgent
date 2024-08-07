@@ -84,9 +84,9 @@ def execute_command(
     """
     Execute a command in a specified Conda environment and return its output.
 
-    This function activates a Conda environment named 'dcbot', executes the given command,
+    This function activates a Conda environment , executes the given command,
     and returns the output or any errors encountered during execution.
-
+    Please use pip to install the package.
     Args:
     command (str): The command to be executed in the Conda environment.
 
@@ -96,7 +96,7 @@ def execute_command(
     try:
         # Get Conda-related paths from environment variables
         conda_path = os.getenv('CONDA_PATH', '/home/e806/anaconda3')
-        conda_env = os.getenv('CONDA_ENV', 'dcbot')
+        conda_env = os.getenv('CONDA_ENV', 'base')
 
         # Construct the command to activate the Conda environment and execute the given command
         source = f"source {conda_path}/etc/profile.d/conda.sh"
