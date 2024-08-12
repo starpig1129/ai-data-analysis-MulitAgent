@@ -1,6 +1,6 @@
 # AI-Driven Research Assistant
 
-![System Architecture](Architecture.jpeg)
+![System Architecture](Architecture.png)
 
 ## Overview
 
