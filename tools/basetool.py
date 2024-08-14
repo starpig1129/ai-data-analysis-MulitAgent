@@ -95,7 +95,7 @@ def execute_command(
     """
     try:
         # Get Conda-related paths from environment variables
-        conda_path = os.getenv('CONDA_PATH', '/home/e806/anaconda3')
+        conda_path = os.getenv('CONDA_PATH', '/home/user/anaconda3')
         conda_env = os.getenv('CONDA_ENV', 'base')
 
         # Construct the command to activate the Conda environment and execute the given command
