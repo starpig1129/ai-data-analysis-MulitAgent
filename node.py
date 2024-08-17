@@ -9,7 +9,7 @@ import re
 # Set up logger
 logger = logging.getLogger(__name__)
 
-def agent_node(state: State, agent: Any, name: str) -> Dict[str, Any]:
+def agent_node(state: State, agent: Any, name: str) -> dict[str, Any]:
     """
     Process an agent's action and update the state accordingly.
     """
@@ -51,7 +51,7 @@ def agent_node(state: State, agent: Any, name: str) -> Dict[str, Any]:
         error_message = AIMessage(content=f"Error: {str(e)}", name=name)
         return {"messages": [error_message]}
 
-def human_choice_node(state: State) -> Dict[str, Any]:
+def human_choice_node(state: State) -> dict[str, Any]:
     """
     Handle human input to choose the next step in the process.
     """
@@ -83,7 +83,7 @@ def human_choice_node(state: State) -> Dict[str, Any]:
     logger.info("Human choice processed")
     return state
 
-def create_message(message: Dict[str, str], name: str) -> BaseMessage:
+def create_message(message: dict[str], name: str) -> BaseMessage:
     """
     Create a BaseMessage object based on the message type.
     """

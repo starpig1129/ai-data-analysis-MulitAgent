@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 # Define types for node routing
 NodeType = Literal['Visualization', 'Search', 'Coder', 'Report', 'Process', 'NoteTaker', 'Hypothesis', 'QualityReview']
-ProcessNodeType = Literal['Coder', 'Search', 'Visualization', 'Report', 'Process', 'END']
+ProcessNodeType = Literal['Coder', 'Search', 'Visualization', 'Report', 'Process', 'Refiner']
 
 def hypothesis_router(state: State) -> NodeType:
     """

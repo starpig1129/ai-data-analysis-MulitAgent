@@ -1,6 +1,6 @@
 import logging
 # Configure logging
-def setup_logger(log_file='agent.log'):
+def setup_logger(log_file:str='agent.log'):
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
 

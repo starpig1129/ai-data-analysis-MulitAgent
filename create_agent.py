@@ -32,9 +32,9 @@ def list_directory_contents(directory: str = './data_storage/') -> str:
 
 def create_agent(
     llm: ChatOpenAI,
-    tools: List[tool],
+    tools: list[tool],
     system_message: str,
-    team_members: List[str],
+    team_members: list[str],
     working_directory: str = './data_storage/'
 ) -> AgentExecutor:
     """
@@ -85,7 +85,7 @@ def create_agent(
     logger.info("Agent created successfully")
     return AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=False)
 
-def create_supervisor(llm: ChatOpenAI, system_prompt, members):
+def create_supervisor(llm: ChatOpenAI, system_prompt:str, members:list[str])-> AgentExecutor:
     logger.info("Creating supervisor")
     options = ["FINISH"] + members
     function_def = {
@@ -128,7 +128,7 @@ from langchain.output_parsers import PydanticOutputParser
 
 def create_note_agent(
     llm: ChatOpenAI,
-    tools: List,
+    tools: list,
     system_prompt: str,
 ) -> AgentExecutor:
     """
