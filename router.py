@@ -110,7 +110,7 @@ def process_router(state: State) -> ProcessNodeType:
     
     if process_decision == "FINISH":
         logger.info("Process decision is FINISH. Ending process.")
-        return "HumanReview"
+        return "Refiner"
     
     # If process_decision is empty or not a valid decision, return "Process"
     if not process_decision or process_decision not in valid_decisions:
