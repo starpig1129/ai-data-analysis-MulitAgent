@@ -46,8 +46,8 @@ git clone https://github.com/starpig1129/Multi-agent-DataAnalysis.git
 ```
 3. Create and activate a Conda virtual environment:
 ```bash
-conda create -n research_assistant python=3.10
-conda activate research_assistant
+conda create -n data_assistant python=3.10
+conda activate data_assistant
 ```
 3. Install dependencies:
 ```bash
@@ -60,7 +60,7 @@ DATA_STORAGE_PATH =./data_storage/
 
 CONDA_PATH = /home/user/anaconda3
 
-CONDA_ENV = envname
+CONDA_ENV = data_assistant
 CHROMEDRIVER_PATH =./chromedriver-linux64/chromedriver
 FIRECRAWL_API_KEY = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
