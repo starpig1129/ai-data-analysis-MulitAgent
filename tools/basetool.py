@@ -46,8 +46,22 @@ def execute_code(
         
         logger.info(f"Code written to file: {code_file_path}")
         
+        # Construct the command to activate the virtual environment and run the script
+        conda_path = os.getenv('CONDA_PATH', '/home/user/anaconda3')
+        conda_env = os.getenv('CONDA_ENV', 'base')
+
+        # Construct the command to activate the Conda environment and execute the given command
+        source = f"source {conda_path}/etc/profile.d/conda.sh"
+        conda_activate = f"conda activate {conda_env}"
+        python_cmd = f"python {code_file_path}"
+        full_command = f"{source} && {conda_activate} && {python_cmd}"
         # Execute the code using subprocess for security
-        result = subprocess.run(['python', code_file_path], capture_output=True, text=True)
+        result = subprocess.run(
+            ['/bin/bash', '-c', full_command],
+            capture_output=True,
+            text=True,
+            cwd=storage_path,  # Set the working directory
+        )
         
         # Capture standard output and error output
         output = result.stdout

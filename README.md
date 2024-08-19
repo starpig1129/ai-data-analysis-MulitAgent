@@ -110,9 +110,8 @@ You can customize the system behavior by modifying the agent creation and workfl
 - The system may take some time to complete the entire research process, depending on the complexity of the task.
 ## Current Issues and Solutions
 1. OpenAI Internal Server Error (Error code: 500)
-2. Agent Execution Root Directory
-3. NoteTaker Efficiency Improvement
-4. Overall Runtime Optimization
+2. NoteTaker Efficiency Improvement
+3. Overall Runtime Optimization
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
