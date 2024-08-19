@@ -44,11 +44,16 @@ The integration of a dedicated Note Taker agent sets this system apart from trad
 ```bash
 git clone https://github.com/starpig1129/Multi-agent-DataAnalysis.git
 ```
-2. Install dependencies:
+3. Create and activate a Conda virtual environment:
+```bash
+conda create -n research_assistant python=3.10
+conda activate research_assistant
+```
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-3. Set up environment variables:
+4. Set up environment variables:
 **Rename `.env Example` to `.env` and fill all the values**
 ```sh
 DATA_STORAGE_PATH =./data_storage/
@@ -103,7 +108,11 @@ You can customize the system behavior by modifying the agent creation and workfl
 
 - Ensure you have sufficient OpenAI API credits, as the system will make multiple API calls.
 - The system may take some time to complete the entire research process, depending on the complexity of the task.
-
+## Current Issues and Solutions
+1. OpenAI Internal Server Error (Error code: 500)
+2. Agent Execution Root Directory
+3. NoteTaker Efficiency Improvement
+4. Overall Runtime Optimization
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
