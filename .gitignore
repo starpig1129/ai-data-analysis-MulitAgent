@@ -1,6 +1,6 @@
 .env
 *.log
 *.csv
-data_storage
+data_storage/*
 *__pycache__/
 chromedriver/*

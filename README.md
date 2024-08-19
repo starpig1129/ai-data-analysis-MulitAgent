@@ -71,13 +71,15 @@ LANGCHAIN_API_KEY = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 1. Start Jupyter Notebook:
 
-2. Open the `main.ipynb` file.
+2. Sata data.csv in data_storage
 
-3. Run all cells to initialize the system and create the workflow.
+3. Open the `main.ipynb` file.
 
-4. In the last cell, you can customize the research task by modifying the `userInput` variable.
+4. Run all cells to initialize the system and create the workflow.
 
-5. Run the final few cells to execute the research process and view the results.
+5. In the last cell, you can customize the research task by modifying the `userInput` variable.
+
+6. Run the final few cells to execute the research process and view the results.
 
 ## Main Components
 
