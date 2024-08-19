@@ -1,15 +1,17 @@
-from typing import Any, Dict
-from langchain_core.messages import AIMessage, HumanMessage, BaseMessage
+from typing import Any
+from langchain_core.messages import AIMessage, HumanMessage, BaseMessage,ToolMessage
 from openai import InternalServerError
 from state import State
 import logging
 import json
 import re
-
+import os
+from pathlib import Path
+from langchain.agents import AgentExecutor
 # Set up logger
 logger = logging.getLogger(__name__)
 
-def agent_node(state: State, agent: Any, name: str) -> dict[str, Any]:
+def agent_node(state: State, agent: AgentExecutor, name: str) -> dict[str, Any]:
     """
     Process an agent's action and update the state accordingly.
     """
@@ -93,7 +95,7 @@ def create_message(message: dict[str], name: str) -> BaseMessage:
     logger.debug(f"Creating message of type {message_type} for {name}")
     return HumanMessage(content=content) if message_type == "human" else AIMessage(content=content, name=name)
 
-def note_agent_node(state: State, agent: Any, name: str) -> State:
+def note_agent_node(state: State, agent: AgentExecutor, name: str) -> State:
     """
     Process the note agent's action and update the entire state.
     """
@@ -210,5 +212,63 @@ def human_review_node(state: State) -> State:
     except Exception as e:
         logger.error(f"An error occurred during human review: {str(e)}", exc_info=True)
         return None
+    
+def refiner_node(state: State, agent: AgentExecutor, name: str) -> State:
+    """
+    Read MD file contents and PNG file names from the specified storage path,
+    add them as report materials to a new message,
+    then process with the agent and update the original state.
+    If token limit is exceeded, use only MD file names instead of full content.
+    """
+    try:
+        # Get storage path
+        storage_path = Path(os.getenv('STORAGE_PATH', './data_storage/'))
+        
+        # Collect materials
+        materials = []
+        md_files = list(storage_path.glob("*.md"))
+        png_files = list(storage_path.glob("*.png"))
+        
+        # Process MD files
+        for md_file in md_files:
+            with open(md_file, "r", encoding="utf-8") as f:
+                materials.append(f"MD file '{md_file.name}':\n{f.read()}")
+        
+        # Process PNG files
+        materials.extend(f"PNG file: '{png_file.name}'" for png_file in png_files)
+        
+        # Combine materials
+        combined_materials = "\n\n".join(materials)
+        report_content = f"Report materials:\n{combined_materials}"
+        
+        # Create refiner state
+        refiner_state = state.copy()
+        refiner_state["messages"] = [BaseMessage(content=report_content)]
+        
+        try:
+            # Attempt to invoke agent with full content
+            result = agent.invoke(refiner_state)
+        except Exception as token_error:
+            # If token limit is exceeded, retry with only MD file names
+            logger.warning("Token limit exceeded. Retrying with MD file names only.")
+            md_file_names = [f"MD file: '{md_file.name}'" for md_file in md_files]
+            png_file_names = [f"PNG file: '{png_file.name}'" for png_file in png_files]
+            
+            simplified_materials = "\n".join(md_file_names + png_file_names)
+            simplified_report_content = f"Report materials (file names only):\n{simplified_materials}"
+            
+            refiner_state["messages"] = [BaseMessage(content=simplified_report_content)]
+            result = agent.invoke(refiner_state)
+        
+        # Update original state
+        state["messages"].append(AIMessage(content=result))
+        state["sender"] = name
+        
+        logger.info("Refiner node processing completed")
+        return state
+    except Exception as e:
+        logger.error(f"Error occurred while processing refiner node: {str(e)}", exc_info=True)
+        state["messages"].append(AIMessage(content=f"Error: {str(e)}", name=name))
+        return state
     
 logger.info("Agent processing module initialized")

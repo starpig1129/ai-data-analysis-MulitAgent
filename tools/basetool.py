@@ -18,10 +18,17 @@ if not os.path.exists(storage_path):
     os.makedirs(storage_path)
     logger.info(f"Created storage directory: {storage_path}")
 
+import os
+import subprocess
+import logging
+from typing import Annotated
+
+logger = logging.getLogger(__name__)
+
 @tool
 def execute_code(
-    input_code: Annotated[str, "The Python code to execute to generate your chart."],
-    codefile_name: Annotated[str, "The Python code file name."]
+    input_code: Annotated[str, "The Python code to execute."],
+    codefile_name: Annotated[str, "The Python code file name or full path."]
 ):
     """
     Execute Python code and return the result.
@@ -31,14 +38,30 @@ def execute_code(
 
     Args:
     input_code (str): The Python code to be executed.
-    codefile_name (str): The name of the file to save the code in.
+    codefile_name (str): The name of the file to save the code in, or the full path.
 
     Returns:
     dict: A dictionary containing the execution result, output, and file path.
     """
     try:
-        # Define the path for the code file
-        code_file_path = os.path.join(storage_path, f'{codefile_name}')
+        # Get the absolute path of the storage directory
+        storage_path = os.path.abspath(os.getenv('STORAGE_PATH', './data_storage'))
+
+        # Check if codefile_name is already an absolute path
+        if os.path.isabs(codefile_name):
+            code_file_path = codefile_name
+        else:
+            # Ensure we're not adding 'data_storage' multiple times
+            if codefile_name.startswith('data_storage'):
+                code_file_path = os.path.join(os.path.dirname(storage_path), codefile_name)
+            else:
+                code_file_path = os.path.join(storage_path, codefile_name)
+
+        # Normalize the path
+        code_file_path = os.path.normpath(code_file_path)
+        
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(code_file_path), exist_ok=True)
         
         # Write the input code to the file
         with open(code_file_path, 'w') as code_file:
@@ -55,12 +78,13 @@ def execute_code(
         conda_activate = f"conda activate {conda_env}"
         python_cmd = f"python {code_file_path}"
         full_command = f"{source} && {conda_activate} && {python_cmd}"
+        
         # Execute the code using subprocess for security
         result = subprocess.run(
             ['/bin/bash', '-c', full_command],
             capture_output=True,
             text=True,
-            cwd=storage_path,  # Set the working directory
+            cwd=os.path.dirname(code_file_path),  # Set the working directory to the file's directory
         )
         
         # Capture standard output and error output
@@ -88,7 +112,7 @@ def execute_code(
         return {
             "result": "Error occurred",
             "error": str(e),
-            "file_path": code_file_path
+            "file_path": code_file_path if 'code_file_path' in locals() else "Unknown"
         }
 
 @tool
