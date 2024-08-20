@@ -114,6 +114,7 @@ You can customize the system behavior by modifying the agent creation and workfl
 1. OpenAI Internal Server Error (Error code: 500)
 2. NoteTaker Efficiency Improvement
 3. Overall Runtime Optimization
+4. Refiner needs to be better
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
