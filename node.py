@@ -11,7 +11,7 @@ from langchain.agents import AgentExecutor
 # Set up logger
 logger = logging.getLogger(__name__)
 
-def agent_node(state: State, agent: AgentExecutor, name: str) -> dict[str, Any]:
+def agent_node(state: State, agent: AgentExecutor, name: str) -> State:
     """
     Process an agent's action and update the state accordingly.
     """
@@ -53,9 +53,10 @@ def agent_node(state: State, agent: AgentExecutor, name: str) -> dict[str, Any]:
         error_message = AIMessage(content=f"Error: {str(e)}", name=name)
         return {"messages": [error_message]}
 
-def human_choice_node(state: State) -> dict[str, Any]:
+def human_choice_node(state: State) -> State:
     """
     Handle human input to choose the next step in the process.
+    If regenerating hypothesis, prompt for specific areas to modify.
     """
     logger.info("Prompting for human choice")
     print("Please choose the next step:")
@@ -69,18 +70,22 @@ def human_choice_node(state: State) -> dict[str, Any]:
         logger.warning(f"Invalid input received: {choice}")
         print("Invalid input, please try again.")
     
-    content = "Regenerate hypothesis" if choice == "1" else "Continue the research process"
+    if choice == "1":
+        modification_areas = input("Please specify which parts of the hypothesis you want to modify: ")
+        content = f"Regenerate hypothesis. Areas to modify: {modification_areas}"
+        state["hypothesis"] = ""
+        state["modification_areas"] = modification_areas
+        logger.info("Hypothesis cleared for regeneration")
+        logger.info(f"Areas to modify: {modification_areas}")
+    else:
+        content = "Continue the research process"
+        state["process"] = "Continue the research process"
+        logger.info("Continuing research process")
+    
     human_message = HumanMessage(content=content)
     
     state["messages"].append(human_message)
     state["sender"] = 'human'
-    
-    if choice == "1":
-        state["hypothesis"] = ""
-        logger.info("Hypothesis cleared for regeneration")
-    else:
-        state["process"] = "Continue the research process"
-        logger.info("Continuing research process")
     
     logger.info("Human choice processed")
     return state
