@@ -42,7 +42,7 @@ The integration of a dedicated Note Taker agent sets this system apart from trad
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/starpig1129/Multi-agent-DataAnalysis.git
+git clone https://github.com/starpig1129/ai-data-analysis-MulitAgent.git
 ```
 3. Create and activate a Conda virtual environment:
 ```bash
