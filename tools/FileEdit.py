@@ -90,6 +90,8 @@ def read_document(
     try:
         if WORKING_DIRECTORY not in file_name:
             file_path = os.path.join(WORKING_DIRECTORY, file_name)
+        else:
+            file_path = file_name
         logger.info(f"Reading document: {file_path}")
         with open(file_path, "r") as file:
             lines = file.readlines()
