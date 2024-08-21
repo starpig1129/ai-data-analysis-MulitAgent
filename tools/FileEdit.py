@@ -34,6 +34,10 @@ def collect_data(data_path: Annotated[str, "Path to the CSV file"] = './data.csv
     Raises:
     ValueError: If unable to read the file with any of the provided encodings.
     """
+    if WORKING_DIRECTORY not in data_path:
+            data_path = os.path.join(WORKING_DIRECTORY, data_path)
+    else:
+        data_path = data_path
     logger.info(f"Attempting to read CSV file: {data_path}")
     encodings = ['utf-8', 'latin1', 'iso-8859-1', 'cp1252']
     for encoding in encodings:
@@ -62,6 +66,8 @@ def create_document(
     try:
         if WORKING_DIRECTORY not in file_name:
             file_path = os.path.join(WORKING_DIRECTORY, file_name)
+        else:
+            file_path = file_name
         logger.info(f"Creating document: {file_path}")
         with open(file_path, "w") as file:
             for i, point in enumerate(points):
@@ -118,7 +124,10 @@ def write_document(
     This function takes a string of content and writes it to a file.
     """
     try:
-        file_path = os.path.join(WORKING_DIRECTORY, file_name)
+        if WORKING_DIRECTORY not in file_name:
+            file_path = os.path.join(WORKING_DIRECTORY, file_name)
+        else:
+            file_path = file_name
         logger.info(f"Writing document: {file_path}")
         with open(file_path, "w") as file:
             file.write(content)
@@ -159,6 +168,8 @@ def edit_document(
     try:
         if WORKING_DIRECTORY not in file_name:
             file_path = os.path.join(WORKING_DIRECTORY, file_name)
+        else:
+            file_path = file_name
         logger.info(f"Editing document: {file_path}")
         with open(file_path, "r") as file:
             lines = file.readlines()

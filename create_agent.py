@@ -39,16 +39,32 @@ def create_agent(
 ) -> AgentExecutor:
     """
     Create an agent with the given language model, tools, system message, and team members.
+    
+    Parameters:
+        llm (ChatOpenAI): The language model to use for the agent.
+        tools (list[tool]): A list of tools the agent can use.
+        system_message (str): A message defining the agent's role and tasks.
+        team_members (list[str]): A list of team member roles for collaboration.
+        working_directory (str): The directory where the agent's data will be stored.
+        
+    Returns:
+        AgentExecutor: An executor that manages the agent's task execution.
     """
+    
     logger.info("Creating agent")
+
+    # Ensure the ListDirectoryContents tool is available
     if list_directory_contents not in tools:
         tools.append(list_directory_contents)
 
+    # Prepare the tool names and team members for the system prompt
     tool_names = ", ".join([tool.name for tool in tools])
     team_members_str = ", ".join(team_members)
 
+    # List the initial contents of the working directory
     initial_directory_contents = list_directory_contents(working_directory)
 
+    # Create the system prompt for the agent
     system_prompt = (
         "You are a specialized AI assistant in a data analysis team. "
         "Your role is to complete specific tasks in the research process. "
@@ -59,13 +75,13 @@ def create_agent(
         f"Your specific role: {system_message}\n"
         "Work autonomously according to your specialty, using the tools available to you. "
         "Do not ask for clarification. "
-        "Your other team members (and other teams) will collaborate with you with their own specialties. "
+        "Your other team members (and other teams) will collaborate with you based on their specialties. "
         f"You are chosen for a reason! You are one of the following team members: {team_members_str}.\n"
-        f"Your working directory is '{working_directory}'. "
         f"The initial contents of your working directory are:\n{initial_directory_contents}\n"
         "Use the ListDirectoryContents tool to check for updates in the directory contents when needed."
     )
 
+    # Define the prompt structure with placeholders for dynamic content
     prompt = ChatPromptTemplate.from_messages([
         ("system", system_prompt),
         MessagesPlaceholder(variable_name="messages"),
@@ -81,9 +97,14 @@ def create_agent(
         MessagesPlaceholder(variable_name="agent_scratchpad"),
     ])
 
+    # Create the agent using the defined prompt and tools
     agent = create_openai_functions_agent(llm=llm, tools=tools, prompt=prompt)
+    
     logger.info("Agent created successfully")
+    
+    # Return an executor to manage the agent's task execution
     return AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=False)
+
 
 def create_supervisor(llm: ChatOpenAI, system_prompt:str, members:list[str])-> AgentExecutor:
     logger.info("Creating supervisor")
