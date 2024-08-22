@@ -25,7 +25,7 @@ def list_directory_contents(directory: str = './data_storage/') -> str:
         logger.info(f"Listing contents of directory: {directory}")
         contents = os.listdir(directory)
         logger.debug(f"Directory contents: {contents}")
-        return f"Directory contents of '{directory}':\n" + "\n".join(contents)
+        return f"Directory contents :\n" + "\n".join(contents)
     except Exception as e:
         logger.error(f"Error listing directory contents: {str(e)}")
         return f"Error listing directory contents: {str(e)}"
