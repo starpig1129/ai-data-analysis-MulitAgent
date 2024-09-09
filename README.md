@@ -44,7 +44,7 @@ The integration of a dedicated Note Taker agent sets this system apart from trad
 ```bash
 git clone https://github.com/starpig1129/ai-data-analysis-MulitAgent.git
 ```
-3. Create and activate a Conda virtual environment:
+2. Create and activate a Conda virtual environment:
 ```bash
 conda create -n data_assistant python=3.10
 conda activate data_assistant
@@ -71,7 +71,7 @@ LANGCHAIN_API_KEY = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 1. Start Jupyter Notebook:
 
-2. Sata data.csv in data_storage
+2. Set YourDataName.csv in data_storage
 
 3. Open the `main.ipynb` file.
 
