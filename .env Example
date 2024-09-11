@@ -1,10 +1,23 @@
+# Your data storage path(required)
 DATA_STORAGE_PATH =./data_storage/
 
+# Anaconda installation path(required)
 CONDA_PATH = /home/user/anaconda3
 
+# Conda environment name(required)
 CONDA_ENV = envname
+
+# ChromeDriver executable path(required)
 CHROMEDRIVER_PATH =./chromedriver-linux64/chromedriver
+
+# Firecrawl API key (optional)
+# Note: If this key is missing, query capabilities may be reduced
 FIRECRAWL_API_KEY = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+# OpenAI API key (required)
+# Warning: This key is essential; the program will not run without it
 OPENAI_API_KEY = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+# LangChain API key (optional)
+# Used for monitoring the processing
 LANGCHAIN_API_KEY = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX

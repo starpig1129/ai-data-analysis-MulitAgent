@@ -56,15 +56,28 @@ pip install -r requirements.txt
 4. Set up environment variables:
 **Rename `.env Example` to `.env` and fill all the values**
 ```sh
+# Your data storage path(required)
 DATA_STORAGE_PATH =./data_storage/
 
+# Anaconda installation path(required)
 CONDA_PATH = /home/user/anaconda3
 
-CONDA_ENV = data_assistant
+# Conda environment name(required)
+CONDA_ENV = envname
+
+# ChromeDriver executable path(required)
 CHROMEDRIVER_PATH =./chromedriver-linux64/chromedriver
+
+# Firecrawl API key (optional)
+# Note: If this key is missing, query capabilities may be reduced
 FIRECRAWL_API_KEY = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+# OpenAI API key (required)
+# Warning: This key is essential; the program will not run without it
 OPENAI_API_KEY = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+# LangChain API key (optional)
+# Used for monitoring the processing
 LANGCHAIN_API_KEY = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 ## Usage
@@ -110,6 +123,7 @@ You can customize the system behavior by modifying the agent creation and workfl
 
 - Ensure you have sufficient OpenAI API credits, as the system will make multiple API calls.
 - The system may take some time to complete the entire research process, depending on the complexity of the task.
+- **WARNING**: The agent system may modify the data being analyzed. It is highly recommended to backup your data before using this system.
 ## Current Issues and Solutions
 1. OpenAI Internal Server Error (Error code: 500)
 2. NoteTaker Efficiency Improvement
