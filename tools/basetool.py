@@ -3,28 +3,14 @@ import logging
 from typing import Annotated
 import subprocess
 from langchain_core.tools import tool
-from dotenv import load_dotenv
 from logger import setup_logger
-# Load environment variables
-load_dotenv()
+from load_cfg import WORKING_DIRECTORY,CONDA_PATH,CONDA_ENV
 # Initialize logger
 logger = setup_logger()
-
-# Get storage path from environment variable
-storage_path = os.getenv('STORAGE_PATH', './data_storage/')
-
 # Ensure the storage directory exists
-if not os.path.exists(storage_path):
-    os.makedirs(storage_path)
-    logger.info(f"Created storage directory: {storage_path}")
-
-import os
-import subprocess
-import logging
-from typing import Annotated
-
-logger = logging.getLogger(__name__)
-
+if not os.path.exists(WORKING_DIRECTORY):
+    os.makedirs(WORKING_DIRECTORY)
+    logger.info(f"Created storage directory: {WORKING_DIRECTORY}")
 @tool
 def execute_code(
     input_code: Annotated[str, "The Python code to execute."],
@@ -44,18 +30,15 @@ def execute_code(
     dict: A dictionary containing the execution result, output, and file path.
     """
     try:
-        # Get the absolute path of the storage directory
-        storage_path = os.path.abspath(os.getenv('STORAGE_PATH', './data_storage'))
-
         # Check if codefile_name is already an absolute path
         if os.path.isabs(codefile_name):
             code_file_path = codefile_name
         else:
-            # Ensure we're not adding 'data_storage' multiple times
-            if codefile_name.startswith('data_storage'):
-                code_file_path = os.path.join(os.path.dirname(storage_path), codefile_name)
+            # Ensure we're not adding WORKING_DIRECTORY multiple times
+            if codefile_name.startswith(WORKING_DIRECTORY):
+                code_file_path = os.path.join(WORKING_DIRECTORY, codefile_name)
             else:
-                code_file_path = os.path.join(storage_path, codefile_name)
+                code_file_path = codefile_name
 
         # Normalize the path
         code_file_path = os.path.normpath(code_file_path)
@@ -132,14 +115,11 @@ def execute_command(
     str: The output of the command or an error message.
     """
     try:
-        # Get Conda-related paths from environment variables
-        conda_path = os.getenv('CONDA_PATH', '/home/user/anaconda3')
-        conda_env = os.getenv('CONDA_ENV', 'base')
-
         # Construct the command to activate the Conda environment and execute the given command
-        source = f"source {conda_path}/etc/profile.d/conda.sh"
-        conda_activate = f"conda activate {conda_env}"
-        full_command = f"{source} && {conda_activate} && {command}"
+        source = f"source {CONDA_PATH}/etc/profile.d/conda.sh"
+        conda_activate = f"conda activate {CONDA_ENV}"
+        cd_command = f"cd WORKING_DIRECTORY"
+        full_command = f"{source} && {conda_activate} && {cd_command} && {command}"
         
         logger.info(f"Executing command: {command}")
         

@@ -1,20 +1,12 @@
 import os
 from langchain_core.tools import tool
 import pandas as pd
-from pathlib import Path
-from tempfile import TemporaryDirectory
 from typing import Dict, Optional, Annotated, List
-from dotenv import load_dotenv
 from logger import setup_logger
-
-# Load environment variables from .env file
-load_dotenv()
+from load_cfg import WORKING_DIRECTORY
 
 # Set up logger
 logger = setup_logger()
-
-# Get working directory from environment variable
-WORKING_DIRECTORY = os.getenv('WORKING_DIRECTORY', './data_storage/')
 
 # Ensure the working directory exists
 if not os.path.exists(WORKING_DIRECTORY):

@@ -6,12 +6,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from typing import Annotated, List
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv
 from logger import setup_logger
-
-# Load environment variables from .env file
-load_dotenv()
-
+from load_cfg import FIRECRAWL_API_KEY,CHROMEDRIVER_PATH
 # Set up logger
 logger = setup_logger()
 
@@ -37,7 +33,7 @@ def google_search(query: Annotated[str, "The search query to use"]) -> str:
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
-        service = Service(os.getenv('CHROMEDRIVER_PATH', './chromedriver/chromedriver'))
+        service = Service(CHROMEDRIVER_PATH)
 
         with webdriver.Chrome(options=chrome_options, service=service) as driver:
             url = f"https://www.google.com/search?q={query}"
@@ -109,7 +105,7 @@ def FireCrawl_scrape_webpages(urls: Annotated[List[str], "List of URLs to scrape
     try:
         logger.info(f"Scraping webpages using FireCrawl: {urls}")
         loader = FireCrawlLoader(
-            api_key=os.getenv('FIRECRAWL_API_KEY'),
+            api_key=FIRECRAWL_API_KEY,
             url=urls,
             mode="scrape"
         )
