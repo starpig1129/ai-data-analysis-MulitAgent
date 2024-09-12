@@ -14,13 +14,13 @@ if not os.path.exists(WORKING_DIRECTORY):
 @tool
 def execute_code(
     input_code: Annotated[str, "The Python code to execute."],
-    codefile_name: Annotated[str, "The Python code file name or full path."]
+    codefile_name: Annotated[str, "The Python code file name or full path."] = 'code.py'
 ):
     """
-    Execute Python code and return the result.
+    Execute Python code in a specified conda environment and return the result.
 
-    This function takes Python code as input, writes it to a file, executes it,
-    and returns the output or any errors encountered during execution.
+    This function takes Python code as input, writes it to a file, executes it in the specified
+    conda environment, and returns the output or any errors encountered during execution.
 
     Args:
     input_code (str): The Python code to be executed.
@@ -30,44 +30,43 @@ def execute_code(
     dict: A dictionary containing the execution result, output, and file path.
     """
     try:
-        # Check if codefile_name is already an absolute path
+        # Ensure WORKING_DIRECTORY exists
+        os.makedirs(WORKING_DIRECTORY, exist_ok=True)
+        # Handle codefile_name, ensuring it's a valid path
         if os.path.isabs(codefile_name):
+            # If it's an absolute path, use it as is
             code_file_path = codefile_name
         else:
-            # Ensure we're not adding WORKING_DIRECTORY multiple times
-            if codefile_name.startswith(WORKING_DIRECTORY):
+            if WORKING_DIRECTORY not in codefile_name:
                 code_file_path = os.path.join(WORKING_DIRECTORY, codefile_name)
             else:
                 code_file_path = codefile_name
 
         # Normalize the path
         code_file_path = os.path.normpath(code_file_path)
+
+        logger.info(f"Code will be written to file: {code_file_path}")
         
-        # Ensure the directory exists
-        os.makedirs(os.path.dirname(code_file_path), exist_ok=True)
-        
-        # Write the input code to the file
+        # Write the code to the file
         with open(code_file_path, 'w') as code_file:
             code_file.write(input_code)
         
-        logger.info(f"Code written to file: {code_file_path}")
+        logger.info(f"Code has been written to file: {code_file_path}")
         
-        # Construct the command to activate the virtual environment and run the script
-        conda_path = os.getenv('CONDA_PATH', '/home/user/anaconda3')
-        conda_env = os.getenv('CONDA_ENV', 'base')
-
-        # Construct the command to activate the Conda environment and execute the given command
-        source = f"source {conda_path}/etc/profile.d/conda.sh"
-        conda_activate = f"conda activate {conda_env}"
-        python_cmd = f"python {code_file_path}"
+        # Build the command to activate the conda environment and run the script
+        source = f"source {CONDA_PATH}/etc/profile.d/conda.sh"
+        conda_activate = f"conda activate {CONDA_ENV}"
+        python_cmd = f"python {codefile_name}"
         full_command = f"{source} && {conda_activate} && {python_cmd}"
         
-        # Execute the code using subprocess for security
+        logger.info(f"Executing command: {full_command}")
+        
+        # Execute the code
         result = subprocess.run(
             ['/bin/bash', '-c', full_command],
             capture_output=True,
             text=True,
-            cwd=os.path.dirname(code_file_path),  # Set the working directory to the file's directory
+            cwd=WORKING_DIRECTORY
         )
         
         # Capture standard output and error output
@@ -76,7 +75,6 @@ def execute_code(
         
         if result.returncode == 0:
             logger.info("Code executed successfully")
-            print(output)
             return {
                 "result": "Code executed successfully",
                 "output": output + "\n\nIf you have completed all tasks, respond with FINAL ANSWER.",
@@ -84,7 +82,6 @@ def execute_code(
             }
         else:
             logger.error(f"Code execution failed: {error_output}")
-            print(error_output)
             return {
                 "result": "Failed to execute",
                 "error": error_output,
@@ -118,8 +115,7 @@ def execute_command(
         # Construct the command to activate the Conda environment and execute the given command
         source = f"source {CONDA_PATH}/etc/profile.d/conda.sh"
         conda_activate = f"conda activate {CONDA_ENV}"
-        cd_command = f"cd WORKING_DIRECTORY"
-        full_command = f"{source} && {conda_activate} && {cd_command} && {command}"
+        full_command = f"{source} && {conda_activate} && {command}"
         
         logger.info(f"Executing command: {command}")
         
@@ -131,7 +127,8 @@ def execute_command(
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            executable="/bin/bash"
+            executable="/bin/bash",
+            cwd=WORKING_DIRECTORY
         )
         logger.info("Command executed successfully")
         return result.stdout
