@@ -106,12 +106,17 @@ def create_agent(
     return AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=False)
 
 
-def create_supervisor(llm: ChatOpenAI, system_prompt:str, members:list[str])-> AgentExecutor:
+def create_supervisor(llm: ChatOpenAI, system_prompt: str, members: list[str]) -> AgentExecutor:
+    # Log the start of supervisor creation
     logger.info("Creating supervisor")
+    
+    # Define options for routing, including FINISH and team members
     options = ["FINISH"] + members
+    
+    # Define the function for routing and task assignment
     function_def = {
         "name": "route",
-        "description": "Select the next role.",
+        "description": "Select the next role and assign a task.",
         "parameters": {
             "title": "routeSchema",
             "type": "object",
@@ -122,22 +127,34 @@ def create_supervisor(llm: ChatOpenAI, system_prompt:str, members:list[str])-> A
                         {"enum": options},
                     ],
                 },
+                "task": {
+                    "title": "Task",
+                    "type": "string",
+                    "description": "The task to be performed by the selected agent"
+                }
             },
-            "required": ["next"],
+            "required": ["next", "task"],
         },
     }
+    
+    # Create the prompt template
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", system_prompt),
             MessagesPlaceholder(variable_name="messages"),
             (
                 "system",
-                "Given the conversation above, who should act next?"
-                " Or should we FINISH? Select one of: {options}",
+                "Given the conversation above, who should act next? "
+                "Or should we FINISH? Select one of: {options}. "
+                "Additionally, specify the task that the selected role should perform."
             ),
         ]
     ).partial(options=str(options), team_members=", ".join(members))
+    
+    # Log successful creation of supervisor
     logger.info("Supervisor created successfully")
+    
+    # Return the chained operations
     return (
         prompt
         | llm.bind_functions(functions=[function_def], function_call="route")
