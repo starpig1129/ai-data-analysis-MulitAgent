@@ -147,7 +147,7 @@ class AgentConfigLoader:
         Returns:
             List of agent names (directory names).
         """
-        agents = []
+        agents: list[str] = []
         if not self.config_root.exists():
             logger.warning(f"Agent config root does not exist: {self.config_root}")
             return agents
@@ -304,7 +304,7 @@ class AgentConfigLoader:
             List of RuleConfig objects, sorted by priority (descending).
         """
         metadata = self.load_metadata(agent_name)
-        rules = []
+        rules: list[RuleConfig] = []
 
         # Rules is now a single file path (string) instead of list
         rule_path = metadata.rules

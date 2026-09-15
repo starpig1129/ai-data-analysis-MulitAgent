@@ -3,6 +3,7 @@
 from unittest.mock import patch
 
 import pytest
+from pydantic import SecretStr
 
 from src.llm.factory import ProviderFactory
 from src.llm.orcarouter import OrcaRouterChatOpenAI, OrcaRouterProvider
@@ -26,7 +27,7 @@ def test_orcarouter_model_uses_gateway_endpoint(
         OrcaRouterChatOpenAI(model="orcarouter/fusion-mini", temperature=1.0)
 
     init.assert_called_once_with(
-        api_key="test-key",
+        api_key=SecretStr("test-key"),
         model="orcarouter/fusion-mini",
         temperature=1.0,
         base_url="https://api.orcarouter.ai/v1",

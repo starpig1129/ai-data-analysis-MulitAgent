@@ -4,6 +4,7 @@ import os
 from typing import Any
 
 from langchain_openai import ChatOpenAI
+from pydantic import SecretStr
 
 from .base import BaseProvider
 
@@ -34,7 +35,7 @@ class OrcaRouterChatOpenAI(ChatOpenAI):
             )
 
         kwargs.setdefault("base_url", ORCAROUTER_BASE_URL)
-        super().__init__(api_key=api_key, **kwargs)
+        super().__init__(api_key=SecretStr(api_key), **kwargs)
 
 
 class OrcaRouterProvider(BaseProvider):

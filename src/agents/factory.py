@@ -1,4 +1,7 @@
+from collections.abc import Callable
+
 from ..config import WORKING_DIRECTORY
+from .base import BaseAgent
 from .code_agent import CodeAgent
 from .hypothesis_agent import HypothesisAgent
 from .note_agent import NoteAgent
@@ -41,7 +44,7 @@ class AgentFactory:
         Raises:
             ValueError: If the agent creation is not implemented.
         """
-        agent_mapping = {
+        agent_mapping: dict[str, Callable[..., BaseAgent]] = {
             "visualization_agent": VisualizationAgent,
             "code_agent": CodeAgent,
             "search_agent": SearchAgent,

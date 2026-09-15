@@ -3,6 +3,7 @@
 from unittest.mock import patch
 
 import pytest
+from pydantic import SecretStr
 
 from src.llm.atlascloud import AtlasCloudChatOpenAI, AtlasCloudProvider
 from src.llm.factory import ProviderFactory
@@ -26,7 +27,7 @@ def test_atlascloud_model_uses_compatible_endpoint_with_default_retries(
         AtlasCloudChatOpenAI(model="openai/gpt-5.4", temperature=1.0)
 
     init.assert_called_once_with(
-        api_key="test-key",
+        api_key=SecretStr("test-key"),
         model="openai/gpt-5.4",
         temperature=1.0,
         base_url="https://api.atlascloud.ai/v1",

@@ -14,7 +14,7 @@ import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, TextIO
 
 import anyio
 import yaml
@@ -140,7 +140,7 @@ class MCPManager:
         self._connection_locks: dict[str, asyncio.Lock] = {}
         self._global_lock = asyncio.Lock()
         self._main_loop: asyncio.AbstractEventLoop | None = None
-        self._mcp_stderr_file = None
+        self._mcp_stderr_file: TextIO | None = None
 
         # Setup a loop exception handler to swallow noisy anyio/asyncio errors
         try:
@@ -409,11 +409,9 @@ class MCPManager:
                 )
                 # Force disconnect before retry
                 await self.disconnect(server_name)
-                if attempt == 1:
-                    logger.error(
-                        f"Max retries reached for tool discovery on {server_name}"
-                    )
-                    return []
+
+        logger.error(f"Max retries reached for tool discovery on {server_name}")
+        return []
 
     async def list_resources(self, server_name: str) -> list[MCPResource]:
         """List available resources from an MCP server.
@@ -452,7 +450,7 @@ class MCPManager:
             return []
 
     async def call_tool(
-        self, server_name: str, tool_name: str, arguments: dict[str, Any] = None
+        self, server_name: str, tool_name: str, arguments: dict[str, Any] | None = None
     ) -> Any:
         """Call a tool on a server with robust retry and session validation."""
         if arguments is None:

@@ -4,6 +4,7 @@ import os
 from typing import Any
 
 from langchain_openai import ChatOpenAI
+from pydantic import SecretStr
 
 from .base import BaseProvider
 
@@ -29,7 +30,7 @@ class AtlasCloudChatOpenAI(ChatOpenAI):
             )
 
         kwargs.setdefault("base_url", "https://api.atlascloud.ai/v1")
-        super().__init__(api_key=api_key, **kwargs)
+        super().__init__(api_key=SecretStr(api_key), **kwargs)
 
 
 class AtlasCloudProvider(BaseProvider):

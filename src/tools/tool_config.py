@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -131,7 +132,7 @@ class ToolConfig:
         if config_path is None:
             config_dir = os.getenv("CONFIG_DIRECTORY", "config")
             config_path = os.path.join(config_dir, "tool_limits.yaml")
-        settings = {}
+        settings: dict[str, Any] = {}
 
         # Try multiple paths to find the config
         possible_paths = [

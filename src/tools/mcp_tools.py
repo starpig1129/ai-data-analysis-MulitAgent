@@ -40,7 +40,7 @@ def _create_args_schema(
     properties = input_schema.get("properties", {})
     required = set(input_schema.get("required", []))
 
-    field_definitions = {}
+    field_definitions: dict[str, Any] = {}
     for prop_name, prop_schema in properties.items():
         prop_type = prop_schema.get("type", "string")
         description = prop_schema.get("description", "")
@@ -55,7 +55,7 @@ def _create_args_schema(
             "array": list,
             "object": dict,
         }
-        python_type = type_mapping.get(prop_type, str)
+        python_type: Any = type_mapping.get(prop_type, str)
 
         # Handle optional types
         if prop_name not in required:

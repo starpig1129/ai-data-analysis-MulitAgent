@@ -15,7 +15,7 @@ logger = setup_logger()
 # Initialize complex tools
 try:
     api_wrapper = WikipediaAPIWrapper(wiki_client=None)
-    wikipedia = WikipediaQueryRun(api_wrapper=api_wrapper)
+    wikipedia: WikipediaQueryRun | None = WikipediaQueryRun(api_wrapper=api_wrapper)
 except Exception as e:
     logger.warning(f"Failed to initialize Wikipedia tool: {e}")
     wikipedia = None
@@ -131,7 +131,7 @@ class ToolFactory:
         """
         from .mcp_tools import get_mcp_tools_async
 
-        return await get_mcp_tools_async(server_names)
+        return list(await get_mcp_tools_async(server_names))
 
     @classmethod
     def get_mcp_tools(cls, server_names: list[str]) -> list[BaseTool]:
@@ -147,4 +147,4 @@ class ToolFactory:
         """
         from .mcp_tools import get_mcp_tools_sync
 
-        return get_mcp_tools_sync(server_names)
+        return list(get_mcp_tools_sync(server_names))

@@ -194,7 +194,10 @@ def human_choice_node(state: State) -> dict[str, Any]:
         print("Invalid input, please try again.")
 
     current_messages = list(get_state_attr(state, "messages", []))
-    updates = {"messages": current_messages, "last_active_agent": "human"}
+    updates: dict[str, Any] = {
+        "messages": current_messages,
+        "last_active_agent": "human",
+    }
 
     if choice == "1":
         modification_areas = input("Specify areas to modify: ")
