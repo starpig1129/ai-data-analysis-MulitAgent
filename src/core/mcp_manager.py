@@ -1,13 +1,15 @@
 from __future__ import annotations
-import logging
+
 import asyncio
+import logging
 import os
-import yaml
 import re
-import anyio
-from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from pathlib import Path
+from typing import Any
+
+import anyio
+import yaml
 
 """This module provides management of MCP server connections and tool exposure
 for agents. It uses the official MCP Python SDK for real server communication
@@ -18,7 +20,6 @@ Reference: https://modelcontextprotocol.io/
 
 
 from ..logger import setup_logger
-
 
 logger = setup_logger()
 # Silence noisy system loggers
@@ -42,10 +43,11 @@ class MCPServerConfig:
         env: Environment variables for the server.
         description: Human-readable description.
     """
+
     name: str
     command: str
-    args: List[str] = field(default_factory=list)
-    env: Dict[str, str] = field(default_factory=dict)
+    args: list[str] = field(default_factory=list)
+    env: dict[str, str] = field(default_factory=dict)
     description: str = ""
 
 
@@ -59,6 +61,7 @@ class MCPResource:
         mime_type: MIME type of the resource.
         description: Optional description.
     """
+
     uri: str
     name: str
     mime_type: str = "text/plain"
@@ -75,9 +78,10 @@ class MCPTool:
         input_schema: JSON schema for tool input.
         server_name: Name of the server providing this tool.
     """
+
     name: str
     description: str
-    input_schema: Dict[str, Any] = field(default_factory=dict)
+    input_schema: dict[str, Any] = field(default_factory=dict)
     server_name: str = ""
 
 
@@ -92,6 +96,7 @@ class MCPServerConnection:
         session_context: Context manager for the session.
         loop: The event loop this connection belongs to.
     """
+
     name: str
     session: Any  # mcp.ClientSession
     client_context: Any  # Context manager for the transport
@@ -124,27 +129,29 @@ class MCPManager:
                 loop = asyncio.get_running_loop()
             except RuntimeError:
                 loop = None
-            
-            config_dir = os.getenv('CONFIG_DIRECTORY', 'config')
+
+            config_dir = os.getenv("CONFIG_DIRECTORY", "config")
             config_path = os.path.join(config_dir, "mcp.yaml")
-            
+
         self.config_path = Path(config_path)
-        self._config: Optional[Dict[str, Any]] = None
-        self._servers: Dict[str, MCPServerConfig] = {}
-        self._connections: Dict[str, MCPServerConnection] = {}
-        self._connection_locks: Dict[str, asyncio.Lock] = {}
+        self._config: dict[str, Any] | None = None
+        self._servers: dict[str, MCPServerConfig] = {}
+        self._connections: dict[str, MCPServerConnection] = {}
+        self._connection_locks: dict[str, asyncio.Lock] = {}
         self._global_lock = asyncio.Lock()
-        self._main_loop: Optional[asyncio.AbstractEventLoop] = None
+        self._main_loop: asyncio.AbstractEventLoop | None = None
         self._mcp_stderr_file = None
-        
+
         # Setup a loop exception handler to swallow noisy anyio/asyncio errors
         try:
             loop = asyncio.get_event_loop()
+
             def silent_exception_handler(loop, context):
                 msg = context.get("message", "")
                 if "asynchronous generator" in msg or "cancel scope" in msg:
                     return
                 loop.default_exception_handler(context)
+
             loop.set_exception_handler(silent_exception_handler)
         except Exception:
             pass
@@ -156,7 +163,7 @@ class MCPManager:
         return self._connection_locks[server_name]
 
     @property
-    def config(self) -> Dict[str, Any]:
+    def config(self) -> dict[str, Any]:
         """Lazy-load MCP configuration.
 
         Returns:
@@ -166,7 +173,7 @@ class MCPManager:
             self._config = self._load_config()
         return self._config
 
-    def get_server_config(self, name: str) -> Optional[MCPServerConfig]:
+    def get_server_config(self, name: str) -> MCPServerConfig | None:
         """Get configuration for a specific MCP server.
 
         Args:
@@ -194,7 +201,7 @@ class MCPManager:
         self._servers[name] = mcp_config
         return mcp_config
 
-    def get_enabled_servers(self, agent_name: str) -> List[MCPServerConfig]:
+    def get_enabled_servers(self, agent_name: str) -> list[MCPServerConfig]:
         """Get list of MCP servers enabled for an agent.
 
         Args:
@@ -254,26 +261,28 @@ class MCPManager:
                     env[key] = value
 
                 server_params = StdioServerParameters(
-                    command=config.command,
-                    args=config.args,
-                    env=env
+                    command=config.command, args=config.args, env=env
                 )
 
                 logger.info(f"Connecting to MCP server: {server_name}...")
-                
+
                 # Redirect stderr to avoid console noise from MCP servers
                 if self._mcp_stderr_file is None:
                     try:
                         # Ensure logs directory exists
                         os.makedirs("logs", exist_ok=True)
-                        self._mcp_stderr_file = open("logs/mcp_servers.log", "a", encoding="utf-8")
+                        self._mcp_stderr_file = open(
+                            "logs/mcp_servers.log", "a", encoding="utf-8"
+                        )
                     except Exception:
                         self._mcp_stderr_file = sys.stderr
 
                 # Use a context manager but handle it manually to keep streams alive
-                client_context = stdio_client(server_params, errlog=self._mcp_stderr_file)
+                client_context = stdio_client(
+                    server_params, errlog=self._mcp_stderr_file
+                )
                 read_stream, write_stream = await client_context.__aenter__()
-                
+
                 session_context = ClientSession(read_stream, write_stream)
                 session = await session_context.__aenter__()
                 await session.initialize()
@@ -283,12 +292,14 @@ class MCPManager:
                     client_context=client_context,
                     session_context=session_context,
                     session=session,
-                    loop=asyncio.get_running_loop()
+                    loop=asyncio.get_running_loop(),
                 )
                 logger.info(f"Successfully connected to {server_name}")
                 return True
             except Exception as e:
-                logger.error(f"Failed to connect to {server_name}: {str(e)}", exc_info=True)
+                logger.error(
+                    f"Failed to connect to {server_name}: {str(e)}", exc_info=True
+                )
                 return False
 
     async def _close_server_connection(self, server_name: str) -> None:
@@ -297,19 +308,23 @@ class MCPManager:
         if conn:
             try:
                 # Attempt graceful closure of the session and client contexts.
-                # Catching anyio-specific task mismatch or closed resource errors 
+                # Catching anyio-specific task mismatch or closed resource errors
                 # that occur when loops are switched or tasks are terminated abruptly.
                 if conn.session_context:
                     try:
                         await conn.session_context.__aexit__(None, None, None)
                     except (anyio.ClosedResourceError, RuntimeError, Exception) as e:
-                        logger.debug(f"Non-fatal error closing session context for {server_name}: {e}")
-                
+                        logger.debug(
+                            f"Non-fatal error closing session context for {server_name}: {e}"
+                        )
+
                 if conn.client_context:
                     try:
                         await conn.client_context.__aexit__(None, None, None)
                     except (anyio.ClosedResourceError, RuntimeError, Exception) as e:
-                        logger.debug(f"Non-fatal error closing client context for {server_name}: {e}")
+                        logger.debug(
+                            f"Non-fatal error closing client context for {server_name}: {e}"
+                        )
             except Exception as e:
                 logger.debug(f"Error during cleanup of {server_name}: {e}")
 
@@ -332,7 +347,7 @@ class MCPManager:
 
     async def _get_or_create_connection(
         self, server_name: str
-    ) -> Optional[MCPServerConnection]:
+    ) -> MCPServerConnection | None:
         """Get existing connection or create a new one with loop-awareness."""
         try:
             current_loop = asyncio.get_running_loop()
@@ -345,7 +360,9 @@ class MCPManager:
             if conn.loop is current_loop and conn.session:
                 return conn
             else:
-                logger.debug(f"Detected stale or loop-mismatched connection for {server_name}. Reconnecting...")
+                logger.debug(
+                    f"Detected stale or loop-mismatched connection for {server_name}. Reconnecting..."
+                )
                 await self.disconnect(server_name)
 
         success = await self.connect(server_name)
@@ -354,7 +371,7 @@ class MCPManager:
 
         return self._connections.get(server_name)
 
-    async def discover_tools(self, server_name: str) -> List[MCPTool]:
+    async def discover_tools(self, server_name: str) -> list[MCPTool]:
         """Discover tools from an MCP server with robust retry.
 
         Args:
@@ -371,26 +388,34 @@ class MCPManager:
 
             try:
                 tools_response = await conn.session.list_tools()
-                    
+
                 tools = []
                 for tool in tools_response.tools:
-                    tools.append(MCPTool(
-                        name=tool.name,
-                        description=tool.description or "",
-                        input_schema=tool.inputSchema if hasattr(tool, 'inputSchema') else {},
-                        server_name=server_name,
-                    ))
+                    tools.append(
+                        MCPTool(
+                            name=tool.name,
+                            description=tool.description or "",
+                            input_schema=tool.inputSchema
+                            if hasattr(tool, "inputSchema")
+                            else {},
+                            server_name=server_name,
+                        )
+                    )
                 logger.info(f"Discovered {len(tools)} tools from {server_name}")
                 return tools
             except Exception as e:
-                logger.warning(f"Failed to discover tools from {server_name} (attempt {attempt+1}/2): {e}")
+                logger.warning(
+                    f"Failed to discover tools from {server_name} (attempt {attempt + 1}/2): {e}"
+                )
                 # Force disconnect before retry
                 await self.disconnect(server_name)
                 if attempt == 1:
-                    logger.error(f"Max retries reached for tool discovery on {server_name}")
+                    logger.error(
+                        f"Max retries reached for tool discovery on {server_name}"
+                    )
                     return []
 
-    async def list_resources(self, server_name: str) -> List[MCPResource]:
+    async def list_resources(self, server_name: str) -> list[MCPResource]:
         """List available resources from an MCP server.
 
         Args:
@@ -408,33 +433,44 @@ class MCPManager:
             resources_response = await conn.session.list_resources()
             resources = []
             for resource in resources_response.resources:
-                resources.append(MCPResource(
-                    uri=str(resource.uri),
-                    name=resource.name or str(resource.uri),
-                    mime_type=resource.mimeType if hasattr(resource, 'mimeType') else "text/plain",
-                    description=resource.description if hasattr(resource, 'description') else "",
-                ))
+                resources.append(
+                    MCPResource(
+                        uri=str(resource.uri),
+                        name=resource.name or str(resource.uri),
+                        mime_type=resource.mimeType
+                        if hasattr(resource, "mimeType")
+                        else "text/plain",
+                        description=resource.description
+                        if hasattr(resource, "description")
+                        else "",
+                    )
+                )
             logger.info(f"Found {len(resources)} resources from {server_name}")
             return resources
         except Exception as e:
             logger.error(f"Failed to list resources from {server_name}: {e}")
             return []
 
-    async def call_tool(self, server_name: str, tool_name: str, arguments: Dict[str, Any] = None) -> Any:
+    async def call_tool(
+        self, server_name: str, tool_name: str, arguments: dict[str, Any] = None
+    ) -> Any:
         """Call a tool on a server with robust retry and session validation."""
         if arguments is None:
             arguments = {}
 
         for attempt in range(3):
             try:
-                # Use the loop-aware connection getter to ensure we are using 
+                # Use the loop-aware connection getter to ensure we are using
                 # a connection bound to the current event loop.
                 conn = await self._get_or_create_connection(server_name)
                 if not conn or not conn.session:
-                    raise Exception(f"Failed to establish or retrieve valid connection for {server_name}")
+                    raise Exception(
+                        f"Failed to establish or retrieve valid connection for {server_name}"
+                    )
 
                 # Call the tool
                 from mcp import types as mcp_types
+
                 result = await conn.session.call_tool(tool_name, arguments)
 
                 # Extract content from result
@@ -443,20 +479,20 @@ class MCPManager:
                     text = ""
                     if isinstance(content, mcp_types.TextContent):
                         text = content.text
-                    elif hasattr(content, 'text'):
+                    elif hasattr(content, "text"):
                         text = content.text
-                    elif hasattr(content, 'data'):
+                    elif hasattr(content, "data"):
                         contents.append(f"[Binary data: {len(content.data)} bytes]")
                         continue
                     else:
                         text = str(content)
-                    
+
                     # Filter out common MCP startup banners that sometimes leak into stdout
                     if "Secure MCP Filesystem Server running on stdio" in text:
                         continue
                     if "Client does not support MCP Roots" in text:
                         continue
-                    
+
                     if text:
                         contents.append(text)
 
@@ -464,7 +500,9 @@ class MCPManager:
 
             except Exception as e:
                 error_msg = str(e) or e.__class__.__name__
-                logger.warning(f"Tool call failed (attempt {attempt+1}/3) for {server_name}.{tool_name}: {error_msg}")
+                logger.warning(
+                    f"Tool call failed (attempt {attempt + 1}/3) for {server_name}.{tool_name}: {error_msg}"
+                )
                 if attempt < 2:
                     # Force disconnect and clear session before retry
                     await self.disconnect(server_name)
@@ -472,7 +510,9 @@ class MCPManager:
                     backoff = 1.0 if server_name != "filesystem" else 1.5
                     await asyncio.sleep(backoff)
                 else:
-                    logger.error(f"Max retries reached for tool {tool_name} on {server_name}")
+                    logger.error(
+                        f"Max retries reached for tool {tool_name} on {server_name}"
+                    )
                     raise e
 
     async def read_resource(self, server_name: str, uri: str) -> str:
@@ -493,12 +533,12 @@ class MCPManager:
             from mcp import types as mcp_types
 
             result = await conn.session.read_resource(uri)
-            
+
             contents = []
             for content in result.contents:
                 if isinstance(content, mcp_types.TextContent):
                     contents.append(content.text)
-                elif hasattr(content, 'text'):
+                elif hasattr(content, "text"):
                     contents.append(content.text)
                 else:
                     contents.append(str(content))
@@ -510,7 +550,7 @@ class MCPManager:
             logger.error(error_msg)
             return error_msg
 
-    def get_tools_for_agent(self, agent_name: str) -> List[MCPTool]:
+    def get_tools_for_agent(self, agent_name: str) -> list[MCPTool]:
         """Get all tools from MCP servers enabled for an agent (sync wrapper).
 
         This is a synchronous wrapper that runs the async version.
@@ -541,17 +581,21 @@ class MCPManager:
 
             if self._main_loop and self._main_loop.is_running():
                 # Use the dedicated background loop
-                from concurrent.futures import Future
+
                 def _run():
-                    return asyncio.run_coroutine_threadsafe(_gather_tools(), self._main_loop).result(timeout=60)
-                
+                    return asyncio.run_coroutine_threadsafe(
+                        _gather_tools(), self._main_loop
+                    ).result(timeout=60)
+
                 import concurrent.futures
+
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     return executor.submit(_run).result()
-            
+
             if loop and loop.is_running():
                 # We're in an async context, create a new task in a separate thread
                 import concurrent.futures
+
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     future = executor.submit(asyncio.run, _gather_tools())
                     return future.result(timeout=60)
@@ -561,7 +605,7 @@ class MCPManager:
             logger.warning(f"Failed to get tools for {agent_name}: {e}")
             return []
 
-    def _load_config(self) -> Dict[str, Any]:
+    def _load_config(self) -> dict[str, Any]:
         """Load MCP configuration from YAML file.
 
         Returns:
@@ -594,15 +638,17 @@ class MCPManager:
             return [self._expand_env_vars(item) for item in obj]
         elif isinstance(obj, str):
             pattern = re.compile(r"\$\{([^}]+)\}")
+
             def replace(match):
                 var_name = match.group(1)
                 return os.environ.get(var_name, match.group(0))
+
             return pattern.sub(replace, obj)
         return obj
 
 
 # Singleton instance
-_default_manager: Optional[MCPManager] = None
+_default_manager: MCPManager | None = None
 
 
 def get_mcp_manager() -> MCPManager:
@@ -619,7 +665,7 @@ def get_mcp_manager() -> MCPManager:
 
 def reset_mcp_manager() -> None:
     """Reset the MCPManager singleton.
-    
+
     Useful for testing or when reconfiguration is needed.
     """
     global _default_manager
@@ -630,7 +676,7 @@ def reset_mcp_manager() -> None:
                 loop = asyncio.get_running_loop()
             except RuntimeError:
                 loop = None
-                
+
             if loop and not loop.is_running():
                 loop.run_until_complete(_default_manager.close_all())
             elif not loop:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Type
+from typing import Any
 
 from langchain_openai import ChatOpenAI
 
@@ -40,6 +40,6 @@ class OrcaRouterChatOpenAI(ChatOpenAI):
 class OrcaRouterProvider(BaseProvider):
     """Provider for OrcaRouter models."""
 
-    def get_model_class(self) -> Type:
+    def get_model_class(self) -> type:
         """Returns the OrcaRouterChatOpenAI class."""
         return OrcaRouterChatOpenAI

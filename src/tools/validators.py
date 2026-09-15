@@ -8,7 +8,6 @@ This module provides:
 import os
 import re
 from pathlib import Path
-from typing import List, Tuple
 
 from ..logger import setup_logger
 from .tool_config import TOOL_CONFIG
@@ -18,7 +17,7 @@ logger = setup_logger()
 
 class PathValidator:
     """Validate file paths for security.
-    
+
     Checks:
     - Path is not in blocked directories
     - File extension is in allowed list
@@ -28,10 +27,10 @@ class PathValidator:
     @classmethod
     def check_path(cls, file_path: str) -> None:
         """Ensure path is not in blocked directories.
-        
+
         Args:
             file_path: Path to validate.
-            
+
         Raises:
             PermissionError: If path is in a blocked directory.
         """
@@ -46,7 +45,7 @@ class PathValidator:
             except (OSError, ValueError):
                 # Skip invalid blocked paths
                 continue
-            
+
             if str(resolved).startswith(str(blocked_resolved)):
                 raise PermissionError(
                     f"Access denied: {file_path} is in blocked path '{blocked}'"
@@ -55,10 +54,10 @@ class PathValidator:
     @classmethod
     def check_extension(cls, file_path: str) -> None:
         """Ensure file extension is allowed.
-        
+
         Args:
             file_path: Path to validate.
-            
+
         Raises:
             PermissionError: If extension is not in allowed list.
         """
@@ -77,10 +76,10 @@ class PathValidator:
     @classmethod
     def check_file_size(cls, file_path: str) -> None:
         """Ensure file is within size limit for reading.
-        
+
         Args:
             file_path: Path to check.
-            
+
         Raises:
             ValueError: If file exceeds max_read_bytes.
         """
@@ -98,10 +97,10 @@ class PathValidator:
     @classmethod
     def validate_read(cls, file_path: str) -> None:
         """Run all read validations.
-        
+
         Args:
             file_path: Path to validate.
-            
+
         Raises:
             PermissionError: If path or extension is not allowed.
             ValueError: If file is too large.
@@ -113,10 +112,10 @@ class PathValidator:
     @classmethod
     def validate_write(cls, file_path: str) -> None:
         """Run all write validations for path.
-        
+
         Args:
             file_path: Path to validate.
-            
+
         Raises:
             PermissionError: If path or extension is not allowed.
         """
@@ -126,7 +125,7 @@ class PathValidator:
 
 class ContentValidator:
     """Validate content before writing.
-    
+
     Checks for:
     - Content size limits
     - Incomplete content markers (TODO, FIXME, etc.)
@@ -152,13 +151,13 @@ class ContentValidator:
         cls,
         content: str,
         file_path: str,
-    ) -> Tuple[bool, List[str]]:
+    ) -> tuple[bool, list[str]]:
         """Validate content before writing.
-        
+
         Args:
             content: Content to validate.
             file_path: Target file path (for context).
-            
+
         Returns:
             Tuple of (is_valid, warnings).
             is_valid is False only if content exceeds size limits.
@@ -167,13 +166,12 @@ class ContentValidator:
         warnings = []
 
         # Check size limit
-        content_bytes = len(content.encode('utf-8'))
+        content_bytes = len(content.encode("utf-8"))
         max_bytes = TOOL_CONFIG.file_ops.max_write_bytes
 
         if content_bytes > max_bytes:
             return False, [
-                f"Content too large: {content_bytes:,} bytes "
-                f"(max: {max_bytes:,} bytes)"
+                f"Content too large: {content_bytes:,} bytes (max: {max_bytes:,} bytes)"
             ]
 
         # Skip further validation if disabled
@@ -189,7 +187,9 @@ class ContentValidator:
         # Check for sensitive data patterns
         for pattern, description in cls.SENSITIVE_PATTERNS:
             if re.search(pattern, content):
-                warnings.append(f"Potential {description} detected - review before commit")
+                warnings.append(
+                    f"Potential {description} detected - review before commit"
+                )
                 break  # Only report first match
 
         # Check for empty or nearly empty content
@@ -206,13 +206,13 @@ class ContentValidator:
         cls,
         content: str,
         file_path: str,
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """Validate content and return formatted result.
-        
+
         Args:
             content: Content to validate.
             file_path: Target file path.
-            
+
         Returns:
             Tuple of (is_valid, message).
         """

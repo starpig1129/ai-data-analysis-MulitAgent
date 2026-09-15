@@ -6,7 +6,7 @@ enabling seamless integration between MCP servers and LangChain agents.
 Example:
     from src.tools.mcp_tools import create_mcp_tool_adapters
     from src.core.mcp_manager import get_mcp_manager
-    
+
     manager = get_mcp_manager()
     mcp_tools = await manager.discover_tools("filesystem")
     langchain_tools = create_mcp_tool_adapters(mcp_tools, "filesystem")
@@ -15,22 +15,19 @@ Example:
 from __future__ import annotations
 
 import asyncio
-import json
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Optional
 
 from langchain.tools import BaseTool
 from pydantic import BaseModel, Field, create_model
 
 from ..logger import setup_logger
 
-
 logger = setup_logger()
 
 
 def _create_args_schema(
-    tool_name: str, 
-    input_schema: Dict[str, Any]
-) -> Type[BaseModel]:
+    tool_name: str, input_schema: dict[str, Any]
+) -> type[BaseModel]:
     """Create a Pydantic model from JSON schema for tool arguments.
 
     Args:
@@ -66,7 +63,7 @@ def _create_args_schema(
 
         field_definitions[prop_name] = (
             python_type,
-            Field(default=default, description=description)
+            Field(default=default, description=description),
         )
 
     # Create a dynamic Pydantic model
@@ -74,7 +71,7 @@ def _create_args_schema(
     if not field_definitions:
         # Empty schema - create a simple model
         return create_model(model_name)
-    
+
     return create_model(model_name, **field_definitions)
 
 
@@ -96,7 +93,7 @@ class MCPToolAdapter(BaseTool):
     description: str = Field(..., description="Tool description")
     mcp_server: str = Field(..., description="MCP server name")
     mcp_tool_name: str = Field(..., description="Original MCP tool name")
-    args_schema: Type[BaseModel] = Field(..., description="Arguments schema")
+    args_schema: type[BaseModel] = Field(..., description="Arguments schema")
 
     def _run(self, **kwargs: Any) -> str:
         """Synchronous execution - wraps async call.
@@ -109,14 +106,18 @@ class MCPToolAdapter(BaseTool):
         """
         try:
             from ..core.mcp_manager import get_mcp_manager
+
             manager = get_mcp_manager()
-            
+
             if manager._main_loop and manager._main_loop.is_running():
                 # Use the dedicated background loop
                 def _run_async():
-                    return asyncio.run_coroutine_threadsafe(self._arun(**kwargs), manager._main_loop).result(timeout=120)
-                
+                    return asyncio.run_coroutine_threadsafe(
+                        self._arun(**kwargs), manager._main_loop
+                    ).result(timeout=120)
+
                 import concurrent.futures
+
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     return executor.submit(_run_async).result()
 
@@ -129,11 +130,9 @@ class MCPToolAdapter(BaseTool):
                 # If we're already in a running event loop, we must run the
                 # async tool call in a separate thread to avoid nested loops.
                 import concurrent.futures
+
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(
-                        asyncio.run, 
-                        self._arun(**kwargs)
-                    )
+                    future = executor.submit(asyncio.run, self._arun(**kwargs))
                     return future.result(timeout=120)
             else:
                 # No running event loop in this thread, safe to use asyncio.run
@@ -155,18 +154,14 @@ class MCPToolAdapter(BaseTool):
         from ..core.mcp_manager import get_mcp_manager
 
         manager = get_mcp_manager()
-        result = await manager.call_tool(
-            self.mcp_server,
-            self.mcp_tool_name,
-            kwargs
-        )
+        result = await manager.call_tool(self.mcp_server, self.mcp_tool_name, kwargs)
         return result
 
 
 def create_mcp_tool_adapter(
     tool_name: str,
     tool_description: str,
-    input_schema: Dict[str, Any],
+    input_schema: dict[str, Any],
     server_name: str,
 ) -> MCPToolAdapter:
     """Create a LangChain tool adapter from MCP tool info.
@@ -195,9 +190,9 @@ def create_mcp_tool_adapter(
 
 
 def create_mcp_tool_adapters(
-    mcp_tools: List[Any],
+    mcp_tools: list[Any],
     server_name: str,
-) -> List[MCPToolAdapter]:
+) -> list[MCPToolAdapter]:
     """Create LangChain tool adapters from a list of MCP tools.
 
     Args:
@@ -224,7 +219,7 @@ def create_mcp_tool_adapters(
     return adapters
 
 
-async def get_mcp_tools_async(server_names: List[str]) -> List[MCPToolAdapter]:
+async def get_mcp_tools_async(server_names: list[str]) -> list[MCPToolAdapter]:
     """Asynchronously get LangChain tools from MCP servers.
 
     Args:
@@ -243,18 +238,14 @@ async def get_mcp_tools_async(server_names: List[str]) -> List[MCPToolAdapter]:
             mcp_tools = await manager.discover_tools(server_name)
             adapters = create_mcp_tool_adapters(mcp_tools, server_name)
             all_tools.extend(adapters)
-            logger.info(
-                f"Loaded {len(adapters)} tools from MCP server: {server_name}"
-            )
+            logger.info(f"Loaded {len(adapters)} tools from MCP server: {server_name}")
         except Exception as e:
-            logger.warning(
-                f"Failed to load tools from {server_name}: {e}"
-            )
+            logger.warning(f"Failed to load tools from {server_name}: {e}")
 
     return all_tools
 
 
-def get_mcp_tools_sync(server_names: List[str]) -> List[MCPToolAdapter]:
+def get_mcp_tools_sync(server_names: list[str]) -> list[MCPToolAdapter]:
     """Synchronously get LangChain tools from MCP servers.
 
     This is a convenience wrapper for sync contexts.
@@ -267,13 +258,18 @@ def get_mcp_tools_sync(server_names: List[str]) -> List[MCPToolAdapter]:
     """
     try:
         from ..core.mcp_manager import get_mcp_manager
+
         manager = get_mcp_manager()
-        
+
         if manager._main_loop and manager._main_loop.is_running():
+
             def _get_async():
-                return asyncio.run_coroutine_threadsafe(get_mcp_tools_async(server_names), manager._main_loop).result(timeout=120)
-            
+                return asyncio.run_coroutine_threadsafe(
+                    get_mcp_tools_async(server_names), manager._main_loop
+                ).result(timeout=120)
+
             import concurrent.futures
+
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 return executor.submit(_get_async).result()
 
@@ -284,11 +280,9 @@ def get_mcp_tools_sync(server_names: List[str]) -> List[MCPToolAdapter]:
 
         if loop and loop.is_running():
             import concurrent.futures
+
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(
-                    asyncio.run,
-                    get_mcp_tools_async(server_names)
-                )
+                future = executor.submit(asyncio.run, get_mcp_tools_async(server_names))
                 return future.result(timeout=120)
         else:
             return asyncio.run(get_mcp_tools_async(server_names))

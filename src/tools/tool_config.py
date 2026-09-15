@@ -1,15 +1,16 @@
 from __future__ import annotations
+
 """Centralized configuration for tool security and resource limits.
 
 This module provides dataclasses for tool limits and a configuration manager
 that loads settings from YAML with fallback to defaults.
 """
 
-from dataclasses import dataclass, field
-from typing import List, Optional
 import os
-import yaml
+from dataclasses import dataclass, field
 from pathlib import Path
+
+import yaml
 
 from ..logger import setup_logger
 
@@ -25,7 +26,7 @@ DEFAULT_MAX_WRITE_BYTES = 10 * 1024 * 1024  # 10MB
 @dataclass
 class ExecutionLimits:
     """Resource limits for code execution.
-    
+
     Attributes:
         timeout_seconds: Max execution time. None = no limit.
         max_memory_mb: Max memory usage (Linux only). None = no limit.
@@ -33,26 +34,29 @@ class ExecutionLimits:
         progress_timeout_seconds: If set, timeout resets on stdout activity.
         blocked_patterns: Code patterns to block (security).
     """
-    timeout_seconds: Optional[int] = None
-    max_memory_mb: Optional[int] = None
+
+    timeout_seconds: int | None = None
+    max_memory_mb: int | None = None
     max_output_chars: int = DEFAULT_MAX_OUTPUT_CHARS
-    progress_timeout_seconds: Optional[int] = None
-    blocked_patterns: List[str] = field(default_factory=lambda: [
-        "os.system",
-        "subprocess.call",
-        "subprocess.run",
-        "subprocess.Popen",
-        "shutil.rmtree",
-        "eval(",
-        "exec(",
-        "__import__",
-    ])
+    progress_timeout_seconds: int | None = None
+    blocked_patterns: list[str] = field(
+        default_factory=lambda: [
+            "os.system",
+            "subprocess.call",
+            "subprocess.run",
+            "subprocess.Popen",
+            "shutil.rmtree",
+            "eval(",
+            "exec(",
+            "__import__",
+        ]
+    )
 
 
 @dataclass
 class FileOperationLimits:
     """Limits for file read/write operations.
-    
+
     Attributes:
         max_read_bytes: Maximum file size to read.
         max_read_lines: Maximum lines to return.
@@ -60,34 +64,49 @@ class FileOperationLimits:
         allowed_extensions: Whitelist of allowed file extensions.
         blocked_paths: Paths that cannot be accessed.
     """
+
     max_read_bytes: int = DEFAULT_MAX_READ_BYTES
     max_read_lines: int = DEFAULT_MAX_READ_LINES
     max_write_bytes: int = DEFAULT_MAX_WRITE_BYTES
-    allowed_extensions: List[str] = field(default_factory=lambda: [
-        ".py", ".md", ".txt", ".csv", ".json", ".yaml", ".yml",
-        ".log", ".png", ".jpg", ".jpeg", ".html", ".css", ".js"
-    ])
-    blocked_paths: List[str] = field(default_factory=lambda: [
-        "/etc", "/sys", "/proc", "/root", "~/.ssh", "/var/log"
-    ])
+    allowed_extensions: list[str] = field(
+        default_factory=lambda: [
+            ".py",
+            ".md",
+            ".txt",
+            ".csv",
+            ".json",
+            ".yaml",
+            ".yml",
+            ".log",
+            ".png",
+            ".jpg",
+            ".jpeg",
+            ".html",
+            ".css",
+            ".js",
+        ]
+    )
+    blocked_paths: list[str] = field(
+        default_factory=lambda: ["/etc", "/sys", "/proc", "/root", "~/.ssh", "/var/log"]
+    )
 
 
 class ToolConfig:
     """Central configuration manager for all tools.
-    
+
     Loads settings from YAML config file with fallback to defaults.
     Provides a singleton-like access pattern via the global TOOL_CONFIG.
     """
 
     def __init__(
         self,
-        execution: Optional[ExecutionLimits] = None,
-        file_ops: Optional[FileOperationLimits] = None,
+        execution: ExecutionLimits | None = None,
+        file_ops: FileOperationLimits | None = None,
         enable_security_scan: bool = True,
-        enable_write_validation: bool = True
+        enable_write_validation: bool = True,
     ):
         """Initialize tool configuration.
-        
+
         Args:
             execution: Execution limits configuration.
             file_ops: File operation limits configuration.
@@ -102,15 +121,15 @@ class ToolConfig:
     @classmethod
     def load(cls, config_path: str | Path | None = None) -> ToolConfig:
         """Load configuration from YAML file with defaults as fallback.
-        
+
         Args:
             config_path: Path to YAML config file (relative to project root).
-            
+
         Returns:
             ToolConfig instance with loaded or default settings.
         """
         if config_path is None:
-            config_dir = os.getenv('CONFIG_DIRECTORY', 'config')
+            config_dir = os.getenv("CONFIG_DIRECTORY", "config")
             config_path = os.path.join(config_dir, "tool_limits.yaml")
         settings = {}
 
@@ -124,7 +143,7 @@ class ToolConfig:
         for path in possible_paths:
             if path.exists():
                 try:
-                    with open(path, 'r', encoding='utf-8') as f:
+                    with open(path, encoding="utf-8") as f:
                         settings = yaml.safe_load(f) or {}
                     logger.info(f"Loaded tool limits from {path}")
                     break
@@ -141,7 +160,9 @@ class ToolConfig:
             max_memory_mb=exec_settings.get("max_memory_mb"),
             max_output_chars=exec_settings.get("max_output_chars", 50000),
             progress_timeout_seconds=exec_settings.get("progress_timeout_seconds"),
-            blocked_patterns=exec_settings.get("blocked_patterns", ExecutionLimits().blocked_patterns),
+            blocked_patterns=exec_settings.get(
+                "blocked_patterns", ExecutionLimits().blocked_patterns
+            ),
         )
 
         # Parse file operation settings
@@ -150,8 +171,12 @@ class ToolConfig:
             max_read_bytes=file_settings.get("max_read_bytes", 5 * 1024 * 1024),
             max_read_lines=file_settings.get("max_read_lines", 10000),
             max_write_bytes=file_settings.get("max_write_bytes", 10 * 1024 * 1024),
-            allowed_extensions=file_settings.get("allowed_extensions", FileOperationLimits().allowed_extensions),
-            blocked_paths=file_settings.get("blocked_paths", FileOperationLimits().blocked_paths),
+            allowed_extensions=file_settings.get(
+                "allowed_extensions", FileOperationLimits().allowed_extensions
+            ),
+            blocked_paths=file_settings.get(
+                "blocked_paths", FileOperationLimits().blocked_paths
+            ),
         )
 
         return cls(

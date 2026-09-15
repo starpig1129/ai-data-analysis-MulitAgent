@@ -1,12 +1,12 @@
 import os
-from typing import Annotated, List
+from typing import Annotated
+
+import pandas as pd
+from langchain_core.tools import tool
 from pydantic import BaseModel, Field
 
-from langchain_core.tools import tool
-import pandas as pd
-
-from ..logger import setup_logger
 from ..config import WORKING_DIRECTORY
+from ..logger import setup_logger
 
 # Set up logger
 logger = setup_logger()
@@ -16,13 +16,14 @@ if not os.path.exists(WORKING_DIRECTORY):
     os.makedirs(WORKING_DIRECTORY)
     logger.info(f"Created working directory: {WORKING_DIRECTORY}")
 
+
 def normalize_path(file_path: str) -> str:
     """
     Normalize file path for cross-platform compatibility.
-    
+
     Args:
     file_path (str): The file path to normalize
-    
+
     Returns:
     str: Normalized file path
     """
@@ -30,19 +31,20 @@ def normalize_path(file_path: str) -> str:
         file_path = os.path.join(WORKING_DIRECTORY, file_path)
     return os.path.normpath(file_path)
 
+
 @tool
 def collect_data(
-    data_path: Annotated[str, "Path to the CSV file"] = './data.csv',
+    data_path: Annotated[str, "Path to the CSV file"] = "./data.csv",
     nrows: Annotated[int | None, "Number of rows to read"] = None,
     usecols: Annotated[list[str] | None, "List of column names to read"] = None,
-    skiprows: Annotated[int | None, "Number of rows to skip at the beginning"] = None
+    skiprows: Annotated[int | None, "Number of rows to skip at the beginning"] = None,
 ) -> Annotated[pd.DataFrame, "The collected data from the CSV file"]:
     """
     Collect data from a CSV file with selective reading options.
     """
     data_path = normalize_path(data_path)
     logger.info(f"Attempting to read CSV file: {data_path}")
-    encodings = ['utf-8', 'latin1', 'iso-8859-1', 'cp1252']
+    encodings = ["utf-8", "latin1", "iso-8859-1", "cp1252"]
     for encoding in encodings:
         try:
             data = pd.read_csv(
@@ -50,7 +52,7 @@ def collect_data(
                 encoding=encoding,
                 nrows=nrows,
                 usecols=usecols,
-                skiprows=skiprows
+                skiprows=skiprows,
             )
             logger.info(f"Successfully read CSV file with encoding: {encoding}")
             return data
@@ -59,10 +61,11 @@ def collect_data(
     logger.error("Unable to read file with provided encodings")
     raise ValueError("Unable to read file with provided encodings")
 
+
 @tool
 def create_document(
-    points: Annotated[List[str], "List of points to be included in the document"],
-    file_name: Annotated[str, "Name of the file to save the document"]
+    points: Annotated[list[str], "List of points to be included in the document"],
+    file_name: Annotated[str, "Name of the file to save the document"],
 ) -> Annotated[str, "Message indicating where the document was saved"]:
     """
     Create and save a text document in Markdown format.
@@ -73,7 +76,7 @@ def create_document(
     try:
         file_path = normalize_path(file_name)
         logger.info(f"Creating document: {file_path}")
-        with open(file_path, "w", encoding='utf-8') as file:
+        with open(file_path, "w", encoding="utf-8") as file:
             for i, point in enumerate(points):
                 file.write(f"{i + 1}. {point}\n")
         logger.info(f"Document created successfully: {file_path}")
@@ -82,11 +85,12 @@ def create_document(
         logger.error(f"Error while saving outline: {str(e)}")
         return f"Error while saving outline: {str(e)}"
 
+
 @tool
 def read_document(
     file_name: Annotated[str, "Name of the file to read"],
     start: Annotated[int, "Starting line number (use 0 for beginning)"] = 0,
-    end: Annotated[int, "Ending line number (use -1 for end of file)"] = -1
+    end: Annotated[int, "Ending line number (use -1 for end of file)"] = -1,
 ) -> Annotated[str, "Content of the document"]:
     """
     Read the specified document with security validation.
@@ -105,12 +109,12 @@ def read_document(
     Returns:
         Content of the document or error message.
     """
-    from .validators import PathValidator
     from .tool_config import TOOL_CONFIG
+    from .validators import PathValidator
 
     try:
         file_path = normalize_path(file_name)
-        
+
         # === VALIDATION ===
         try:
             PathValidator.validate_read(file_path)
@@ -118,9 +122,9 @@ def read_document(
             logger.warning(f"Read validation failed for {file_path}: {e}")
             return f"Error: {e}"
 
-        with open(file_path, "r", encoding='utf-8') as file:
+        with open(file_path, encoding="utf-8") as file:
             lines = file.readlines()
-        
+
         # Apply line limit
         max_lines = TOOL_CONFIG.file_ops.max_read_lines
         if len(lines) > max_lines:
@@ -128,7 +132,7 @@ def read_document(
             truncated_notice = f"\n\n... [TRUNCATED: showing first {max_lines} lines]"
         else:
             truncated_notice = ""
-        
+
         # Handle special values
         if start == 0 and end == -1:
             content = "".join(lines)
@@ -136,15 +140,16 @@ def read_document(
             content = "".join(lines[start:])
         else:
             content = "".join(lines[start:end])
-            
+
         return content + truncated_notice
     except Exception as e:
         return f"Error: {str(e)}"
 
+
 @tool
 def write_document(
     content: Annotated[str, "Content to be written to the document"],
-    file_name: Annotated[str, "Name of the file to save the document"]
+    file_name: Annotated[str, "Name of the file to save the document"],
 ) -> Annotated[str, "Message indicating where the document was saved"]:
     """
     Create and save a Markdown document with validation.
@@ -162,11 +167,11 @@ def write_document(
     Returns:
         Success message or error.
     """
-    from .validators import PathValidator, ContentValidator
+    from .validators import ContentValidator, PathValidator
 
     try:
         file_path = normalize_path(file_name)
-        
+
         # === PATH VALIDATION ===
         try:
             PathValidator.validate_write(file_path)
@@ -180,10 +185,10 @@ def write_document(
             return f"Error: {message}"
 
         logger.info(f"Writing document: {file_path}")
-        with open(file_path, "w", encoding='utf-8') as file:
+        with open(file_path, "w", encoding="utf-8") as file:
             file.write(content)
         logger.info(f"Document written successfully: {file_path}")
-        
+
         result = f"Document saved to {file_path}"
         if message:  # Warnings
             result += f" ({message})"
@@ -191,6 +196,7 @@ def write_document(
     except Exception as e:
         logger.error(f"Error while saving document: {str(e)}")
         return f"Error while saving document: {str(e)}"
+
 
 class LineInsert(BaseModel):
     line_number: int = Field(description="Line number to insert at")
@@ -200,12 +206,12 @@ class LineInsert(BaseModel):
 @tool
 def edit_document(
     file_name: Annotated[str, "Name of the file to edit"],
-    inserts: Annotated[List[LineInsert], "List of line insertions"]
+    inserts: Annotated[list[LineInsert], "List of line insertions"],
 ) -> Annotated[str, "Message indicating where the document was saved"]:
     """Edit a document by inserting text at specific line numbers."""
     try:
         file_path = normalize_path(file_name)
-        with open(file_path, "r", encoding='utf-8') as file:
+        with open(file_path, encoding="utf-8") as file:
             lines = file.readlines()
 
         inserts_dict = {insert.line_number: insert.text for insert in inserts}
@@ -214,14 +220,13 @@ def edit_document(
         for line_number, text in sorted_inserts:
             if 1 <= line_number <= len(lines) + 1:
                 lines.insert(line_number - 1, text + "\n")
-        
-        with open(file_path, "w", encoding='utf-8') as file:
+
+        with open(file_path, "w", encoding="utf-8") as file:
             file.writelines(lines)
-        
+
         return f"Document edited and saved to {file_path}"
     except Exception as e:
         return f"Error while editing document: {str(e)}"
-
 
 
 logger.info("Document management tools initialized")

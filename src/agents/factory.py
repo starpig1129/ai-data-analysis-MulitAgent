@@ -1,18 +1,21 @@
-from .visualization_agent import VisualizationAgent
+from ..config import WORKING_DIRECTORY
 from .code_agent import CodeAgent
-from .search_agent import SearchAgent
-from .report_agent import ReportAgent
+from .hypothesis_agent import HypothesisAgent
+from .note_agent import NoteAgent
+from .process_agent import ProcessAgent
 from .quality_review_agent import QualityReviewAgent
 from .refiner_agent import RefinerAgent
-from .hypothesis_agent import HypothesisAgent
-from .process_agent import ProcessAgent
-from .note_agent import NoteAgent
-from ..config import WORKING_DIRECTORY
+from .report_agent import ReportAgent
+from .search_agent import SearchAgent
+from .visualization_agent import VisualizationAgent
+
 
 class AgentFactory:
     """A factory class for creating agents."""
 
-    def __init__(self, language_model_manager, team_members, working_directory=WORKING_DIRECTORY):
+    def __init__(
+        self, language_model_manager, team_members, working_directory=WORKING_DIRECTORY
+    ):
         """
         Initialize the AgentFactory.
 
@@ -57,5 +60,5 @@ class AgentFactory:
         return agent_class(
             language_model_manager=self.language_model_manager,
             team_members=self.team_members,
-            working_directory=self.working_directory
+            working_directory=self.working_directory,
         )
