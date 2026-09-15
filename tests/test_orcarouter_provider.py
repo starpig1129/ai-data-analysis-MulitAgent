@@ -1,12 +1,8 @@
 """Tests for the optional OrcaRouter LLM provider."""
 
-import sys
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.llm.factory import ProviderFactory
 from src.llm.orcarouter import OrcaRouterChatOpenAI, OrcaRouterProvider

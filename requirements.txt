@@ -14,6 +14,6 @@ python-dotenv==1.1.1
 selenium==4.37.0
 wikipedia==1.4.0
 firecrawl-py==4.5.0
-langchain-crw
+langchain-crw==0.5.0
 openai==2.6.0
-mcp>=1.0.0
+mcp==1.27.2
