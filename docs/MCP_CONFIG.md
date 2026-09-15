@@ -17,7 +17,7 @@ MCP (Model Context Protocol) is a standardized protocol that allows agents to sa
 ### Required Dependencies
 
 ```bash
-pip install mcp>=1.0.0
+pip install -r requirements.txt
 ```
 
 ### Node.js
