@@ -33,7 +33,11 @@ jobs:
         run: |
           if [ "$EVENT_NAME" != "pull_request" ]; then
             echo "audit=true" >> "$GITHUB_OUTPUT"
-          elif git diff --name-only "$BASE_SHA...$HEAD_SHA" | grep -E '^requirements.*\.txt$'; then
+            exit 0
+          fi
+          # Capture first so a failing git diff fails the step instead of skipping the audit.
+          changed_files=$(git diff --name-only "$BASE_SHA...$HEAD_SHA")
+          if printf '%s\n' "$changed_files" | grep -qE '^requirements.*\.txt$'; then
             echo "audit=true" >> "$GITHUB_OUTPUT"
           else
             echo "audit=false" >> "$GITHUB_OUTPUT"
