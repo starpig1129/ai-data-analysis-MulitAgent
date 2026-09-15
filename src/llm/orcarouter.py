@@ -16,9 +16,25 @@ class OrcaRouterChatOpenAI(ChatOpenAI):
     """ChatOpenAI preconfigured for the OrcaRouter gateway."""
 
     def __init__(self, **kwargs: Any) -> None:
+        """Initializes the client with OrcaRouter credentials and endpoint.
+
+        Args:
+            **kwargs: ChatOpenAI keyword arguments from the agent model config.
+                An explicit ``api_key`` or ``base_url`` overrides the defaults.
+
+        Raises:
+            ValueError: If no API key is passed and ``ORCAROUTER_API_KEY`` is
+                unset. Passing ``api_key=None`` through would make the OpenAI
+                SDK fall back to ``OPENAI_API_KEY`` and send it to OrcaRouter.
+        """
+        api_key = kwargs.pop("api_key", None) or os.getenv("ORCAROUTER_API_KEY")
+        if not api_key:
+            raise ValueError(
+                "ORCAROUTER_API_KEY is required for the OrcaRouter provider"
+            )
+
         kwargs.setdefault("base_url", ORCAROUTER_BASE_URL)
-        kwargs.setdefault("api_key", os.getenv("ORCAROUTER_API_KEY"))
-        super().__init__(**kwargs)
+        super().__init__(api_key=api_key, **kwargs)
 
 
 class OrcaRouterProvider(BaseProvider):
