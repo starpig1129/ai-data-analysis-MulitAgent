@@ -6,7 +6,7 @@ langchain-anthropic==1.4.6
 langchain-google-genai==3.0.0
 langchain-ollama==1.0.0
 langchain-groq==1.0.0
-arxiv==3.0.0
+arxiv==4.0.1
 beautifulsoup4==4.14.2
 langgraph==1.2.4
 pandas==2.3.3
