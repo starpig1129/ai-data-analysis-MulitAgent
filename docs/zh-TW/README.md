@@ -187,11 +187,6 @@ agents:
     model_config:
       model: gemini-2.5-pro
       temperature: 1.0
-  report_agent:
-    provider: atlascloud
-    model_config:
-      model: openai/gpt-5.4
-      temperature: 1.0
   code_agent:
     provider: anthropic
     model_config:
@@ -204,7 +199,15 @@ agents:
   - `model`：要使用的特定模型名稱
   - `temperature`：控制模型輸出的隨機性（範圍：0.0-2.0）
 
-`atlascloud` 提供者會讀取 `ATLASCLOUD_API_KEY`，使用 Atlas Cloud 的 OpenAI 相容端點，並停用自動請求重試。請從當前 Atlas Cloud 模型目錄選擇模型。
+`atlascloud` 提供者會讀取 `ATLASCLOUD_API_KEY`，並使用 Atlas Cloud 的 OpenAI 相容端點。請從當前 Atlas Cloud 模型目錄選擇模型，例如：
+
+```yaml
+  report_agent:
+    provider: atlascloud
+    model_config:
+      model: openai/gpt-5.4
+      temperature: 1.0
+```
 
 ## 進階配置系統
 

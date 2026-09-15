@@ -189,11 +189,6 @@ agents:
     model_config:
       model: gemini-2.5-pro
       temperature: 1.0
-  report_agent:
-    provider: atlascloud
-    model_config:
-      model: openai/gpt-5.4
-      temperature: 1.0
   code_agent:
     provider: anthropic
     model_config:
@@ -206,7 +201,15 @@ agents:
   - `model`: The specific model name to use
   - `temperature`: Controls the randomness of model output (range: 0.0-2.0)
 
-The `atlascloud` provider reads `ATLASCLOUD_API_KEY`, uses Atlas Cloud's OpenAI-compatible endpoint, and disables automatic request retries. Choose a model from the current Atlas Cloud model catalog.
+The `atlascloud` provider reads `ATLASCLOUD_API_KEY` and uses Atlas Cloud's OpenAI-compatible endpoint. Choose a model from the current Atlas Cloud model catalog, for example:
+
+```yaml
+  report_agent:
+    provider: atlascloud
+    model_config:
+      model: openai/gpt-5.4
+      temperature: 1.0
+```
 
 ## Advanced Configuration System
 
