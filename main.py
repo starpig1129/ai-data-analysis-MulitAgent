@@ -58,8 +58,9 @@ def main() -> None:
 
     # Initialize the robust logger first thing
     setup_logger()
-    # Pre-existing runtime warning suppression (unchanged behavior, only moved
-    # into main() per task-4-brief.md Step 8); not a test assertion or check.
+    # Silence library warnings (e.g. deprecation/future warnings raised via the
+    # warnings module) so they don't clutter the console; the stderr filter
+    # above only catches noise libraries print directly to stderr.
     warnings.filterwarnings("ignore")
 
     from src.system import MultiAgentSystem
