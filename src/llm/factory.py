@@ -6,6 +6,7 @@ from .google import GoogleProvider
 from .ollama import OllamaProvider
 from .azure import AzureChatOpenAIProvider
 from .groq import ChatGroqProvider
+from .atlascloud import AtlasCloudProvider
 
 if TYPE_CHECKING:
     from .base import BaseProvider
@@ -40,5 +41,7 @@ class ProviderFactory:
             return AzureChatOpenAIProvider()
         elif provider_name == "groq":
             return ChatGroqProvider()
+        elif provider_name == "atlascloud":
+            return AtlasCloudProvider()
         else:
             raise NotImplementedError(f"Provider creation for '{provider_name}' is not implemented.")

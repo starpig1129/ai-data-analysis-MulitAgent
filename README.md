@@ -194,7 +194,7 @@ agents:
       temperature: 1.0
 ```
 
-- **provider**: Specifies the language model provider to use (e.g., openai, google, anthropic, ollama, groq)
+- **provider**: Specifies the language model provider to use (e.g., openai, google, anthropic, ollama, groq, atlascloud)
 - **model_config**: Contains model-specific configuration parameters
   - `model`: The specific model name to use
   - `temperature`: Controls the randomness of model output (range: 0.0-2.0)
