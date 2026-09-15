@@ -1,12 +1,6 @@
-from .agent_config_loader import AgentConfigLoader, get_agent_config_loader
-from .language_models import LanguageModelManager
-from .mcp_manager import MCPManager, get_mcp_manager
-from .node import (
-    agent_node,
-    human_choice_node,
-    human_review_node,
-    note_agent_node,
-    refiner_node,
-)
-from .router import QualityReview_router, hypothesis_router, process_router
-from .workflow import WorkflowManager
+"""Core workflow, routing, state and MCP management.
+
+Import from the submodules directly (for example ``src.core.workflow``). This
+package deliberately has no re-exports: importing them eagerly pulled in the
+whole agent graph and created a circular import with ``src.agents``.
+"""
