@@ -4,10 +4,11 @@ The committed fixtures under ``traces/`` are hand-written so the PoC is determin
 This script shows the other half: how to record an actual DATAGEN graph run and lint it, with no
 changes to DATAGEN's runtime.
 
-    pip install "tracelint[capture-langchain]"
+    pip install "tracelint[capture-langchain]"   # LangChain instrumentor; also captures LangGraph
     python integrations/tracelint/capture_example.py
 
-``tracelint.capture`` wraps the framework's stock OpenInference instrumentor against a *local* OTel
+DATAGEN is a LangGraph app, so ``framework="langgraph"`` is used below (it wraps the same LangChain
+OpenInference instrumentor). ``tracelint.capture`` stands that instrumentor up against a *local* OTel
 provider whose only exporter writes the flat OpenInference span shape to a file — so any tracing you
 already run is left untouched, and the file lints with ``--format openinference``.
 """
@@ -27,8 +28,9 @@ def main() -> None:
     #     from src.core.workflow import build_workflow
     #     graph = build_workflow(...)
     #
-    # Then capture a run. Everything executed inside the context manager is recorded:
-    with capture(str(OUT), framework="langchain"):
+    # Then capture a run. Everything executed inside the context manager is recorded.
+    # framework="langgraph" wraps the LangChain OpenInference instrumentor DATAGEN's graph uses:
+    with capture(str(OUT), framework="langgraph"):
         # result = graph.invoke(
         #     {"messages": [("user", "Research recent advances in CRISPR base editing "
         #                            "and save a report.")]}

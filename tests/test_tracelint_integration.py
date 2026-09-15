@@ -13,7 +13,7 @@ This test lints two committed traces that mirror DATAGEN's multi-agent research 
    i.e. tracelint does not add noise on legitimate repetition.
 
 tracelint is an optional dev/CI dependency; this test skips cleanly when it is absent, so it never
-affects DATAGEN's own test run or CI. To run it locally: ``pip install tracelint``.
+affects DATAGEN's own test run or CI. To run it locally: ``pip install "tracelint>=0.8.0"``.
 """
 
 from __future__ import annotations
