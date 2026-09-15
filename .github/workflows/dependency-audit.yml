@@ -1,0 +1,58 @@
+name: Dependency audit
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-audit:
+    name: dependency-audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # The job always runs so it can be a required check; a workflow-level
+      # `paths` filter would leave unrelated PRs waiting on a check that never
+      # starts. PRs that do not touch requirements files exit here.
+      - name: Detect dependency changes
+        id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "audit=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Capture first so a failing git diff fails the step instead of skipping the audit.
+          changed_files=$(git diff --name-only "$BASE_SHA...$HEAD_SHA")
+          if printf '%s\n' "$changed_files" | grep -qE '^requirements.*\.txt$'; then
+            echo "audit=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "audit=false" >> "$GITHUB_OUTPUT"
+            echo "No requirements changes in this pull request; skipping audit."
+          fi
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        if: steps.changes.outputs.audit == 'true'
+        with:
+          python-version: "3.13"
+          activate-environment: true
+          enable-cache: true
+          cache-dependency-glob: "requirements*.txt"
+      - name: Install pip-audit
+        if: steps.changes.outputs.audit == 'true'
+        run: uv pip install -r requirements-dev.txt
+      - name: Audit requirements
+        if: steps.changes.outputs.audit == 'true'
+        run: pip-audit -r requirements.txt

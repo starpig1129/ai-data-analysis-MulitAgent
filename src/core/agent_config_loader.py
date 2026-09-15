@@ -9,13 +9,13 @@ Claude Agent Skills specification. It supports:
 
 Example:
     loader = AgentConfigLoader()
-    
+
     # Level 1: Discover agents (lightweight)
     agents = loader.discover_agents()
-    
+
     # Level 2: Load full system prompt when needed
     prompt = loader.load_system_prompt("process_agent")
-    
+
     # Level 3: Load skills and MCP config
     skills = loader.load_skills("process_agent")
     mcp_config = loader.load_mcp_config("process_agent")
@@ -27,12 +27,11 @@ import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import yaml
 
 from ..logger import setup_logger
-
 
 logger = setup_logger()
 
@@ -51,14 +50,15 @@ class AgentMetadata:
         mcp_servers: List of MCP server names to enable.
         use_complete_prompt: If True, use the markdown content as complete system prompt.
     """
+
     name: str
     description: str
     version: str = "1.0.0"
-    model: Dict[str, Any] = field(default_factory=dict)
-    skills: List[str] = field(default_factory=list)
-    tools: List[str] = field(default_factory=list)
+    model: dict[str, Any] = field(default_factory=dict)
+    skills: list[str] = field(default_factory=list)
+    tools: list[str] = field(default_factory=list)
     rules: Any = ""  # Can be str or List[str]
-    mcp_servers: List[str] = field(default_factory=list)
+    mcp_servers: list[str] = field(default_factory=list)
     use_complete_prompt: bool = False
 
 
@@ -72,6 +72,7 @@ class SkillConfig:
         content: Full markdown content of the skill.
         path: Absolute path to the skill file.
     """
+
     name: str
     description: str
     content: str
@@ -89,11 +90,12 @@ class RuleConfig:
         content: Full markdown content of the rule.
         path: Absolute path to the rule file.
     """
+
     trigger: str = "always_on"
     priority: int = 100
-    context_patterns: List[str] = field(default_factory=list)
+    context_patterns: list[str] = field(default_factory=list)
     content: str = ""
-    path: Optional[Path] = None
+    path: Path | None = None
 
 
 class AgentConfigLoader:
@@ -109,15 +111,12 @@ class AgentConfigLoader:
     """
 
     # Pattern to extract YAML frontmatter from markdown
-    FRONTMATTER_PATTERN = re.compile(
-        r"^---\s*\n(.*?)\n---\s*\n",
-        re.DOTALL
-    )
+    FRONTMATTER_PATTERN = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 
     def __init__(
         self,
         config_root: str | Path | None = None,
-        mcp_config_path: str | Path | None = None
+        mcp_config_path: str | Path | None = None,
     ) -> None:
         """Initialize the agent configuration loader.
 
@@ -126,20 +125,20 @@ class AgentConfigLoader:
             mcp_config_path: Path to the MCP server configuration file.
         """
         # Load base config directory from environment
-        config_dir = os.getenv('CONFIG_DIRECTORY', 'config')
-        
+        config_dir = os.getenv("CONFIG_DIRECTORY", "config")
+
         # Set defaults relative to config_dir if not provided
         if config_root is None:
             config_root = os.path.join(config_dir, "agents")
         if mcp_config_path is None:
             mcp_config_path = os.path.join(config_dir, "mcp.yaml")
-            
+
         self.config_root = Path(config_root)
         self.mcp_config_path = Path(mcp_config_path)
-        self._metadata_cache: Dict[str, AgentMetadata] = {}
-        self._mcp_config: Optional[Dict[str, Any]] = None
+        self._metadata_cache: dict[str, AgentMetadata] = {}
+        self._mcp_config: dict[str, Any] | None = None
 
-    def discover_agents(self) -> List[str]:
+    def discover_agents(self) -> list[str]:
         """Discover all available agents (Level 1).
 
         Scans the config_root directory for agent subdirectories containing
@@ -148,7 +147,7 @@ class AgentConfigLoader:
         Returns:
             List of agent names (directory names).
         """
-        agents = []
+        agents: list[str] = []
         if not self.config_root.exists():
             logger.warning(f"Agent config root does not exist: {self.config_root}")
             return agents
@@ -226,11 +225,11 @@ class AgentConfigLoader:
             raise FileNotFoundError(f"Agent config not found: {agent_md_path}")
 
         content = agent_md_path.read_text(encoding="utf-8")
-        
+
         # Remove frontmatter to get the prompt content
         match = self.FRONTMATTER_PATTERN.match(content)
         if match:
-            prompt = content[match.end():].strip()
+            prompt = content[match.end() :].strip()
         else:
             prompt = content.strip()
 
@@ -247,10 +246,10 @@ class AgentConfigLoader:
         metadata = self.load_metadata(agent_name)
         if metadata.use_complete_prompt:
             return f"SYSTEM_PROMPT:{prompt}"
-        
+
         return prompt
 
-    def load_skills(self, agent_name: str) -> List[SkillConfig]:
+    def load_skills(self, agent_name: str) -> list[SkillConfig]:
         """Load agent-specific skills (Level 3).
 
         Args:
@@ -276,7 +275,7 @@ class AgentConfigLoader:
 
         return skills
 
-    def get_skill_content(self, skill_name: str) -> Optional[str]:
+    def get_skill_content(self, skill_name: str) -> str | None:
         """Get the full content of a skill file (Level 2).
 
         Args:
@@ -288,14 +287,14 @@ class AgentConfigLoader:
         # Skills folder is at config/skills/ (sibling of agents/)
         skills_dir = self.config_root.parent / "skills"
         skill_path = skills_dir / skill_name / "SKILL.md"
-        
+
         if not skill_path.exists():
             logger.warning(f"Skill file not found: {skill_path}")
             return None
-            
+
         return skill_path.read_text(encoding="utf-8")
 
-    def load_rules(self, agent_name: str) -> List[RuleConfig]:
+    def load_rules(self, agent_name: str) -> list[RuleConfig]:
         """Load applicable rules for an agent (Level 3).
 
         Args:
@@ -305,7 +304,7 @@ class AgentConfigLoader:
             List of RuleConfig objects, sorted by priority (descending).
         """
         metadata = self.load_metadata(agent_name)
-        rules = []
+        rules: list[RuleConfig] = []
 
         # Rules is now a single file path (string) instead of list
         rule_path = metadata.rules
@@ -337,7 +336,7 @@ class AgentConfigLoader:
         rules.sort(key=lambda r: r.priority, reverse=True)
         return rules
 
-    def load_mcp_config(self, agent_name: str) -> Dict[str, Any]:
+    def load_mcp_config(self, agent_name: str) -> dict[str, Any]:
         """Load MCP server configuration for an agent (Level 3).
 
         Combines default MCP servers with agent-specific overrides.
@@ -368,7 +367,7 @@ class AgentConfigLoader:
 
         return result
 
-    def get_model_config(self, agent_name: str) -> Dict[str, Any]:
+    def get_model_config(self, agent_name: str) -> dict[str, Any]:
         """Get model configuration from agent metadata.
 
         Args:
@@ -380,7 +379,7 @@ class AgentConfigLoader:
         metadata = self.load_metadata(agent_name)
         return metadata.model
 
-    def _extract_frontmatter(self, content: str) -> Optional[Dict[str, Any]]:
+    def _extract_frontmatter(self, content: str) -> dict[str, Any] | None:
         """Extract YAML frontmatter from markdown content.
 
         Args:
@@ -399,7 +398,7 @@ class AgentConfigLoader:
             logger.error(f"Failed to parse frontmatter: {e}")
             return None
 
-    def _parse_skill_file(self, path: Path) -> Optional[SkillConfig]:
+    def _parse_skill_file(self, path: Path) -> SkillConfig | None:
         """Parse a SKILL.md file into SkillConfig.
 
         Args:
@@ -422,7 +421,7 @@ class AgentConfigLoader:
             path=path,
         )
 
-    def _parse_rule_file(self, path: Path) -> Optional[RuleConfig]:
+    def _parse_rule_file(self, path: Path) -> RuleConfig | None:
         """Parse a rule markdown file into RuleConfig.
 
         Args:
@@ -445,7 +444,7 @@ class AgentConfigLoader:
 
         # Remove frontmatter from content
         match = self.FRONTMATTER_PATTERN.match(content)
-        rule_content = content[match.end():].strip() if match else content
+        rule_content = content[match.end() :].strip() if match else content
 
         return RuleConfig(
             trigger=frontmatter.get("trigger", "always_on"),
@@ -466,7 +465,7 @@ class AgentConfigLoader:
         """
         rules = self.load_rules(agent_name)
         active_rules = [r for r in rules if r.trigger == "always_on"]
-        
+
         if not active_rules:
             return ""
 
@@ -486,7 +485,7 @@ class AgentConfigLoader:
             Combined skill content string.
         """
         skills = self.load_skills(agent_name)
-        
+
         if not skills:
             return ""
 
@@ -496,7 +495,7 @@ class AgentConfigLoader:
 
         return "\n\n".join(sections)
 
-    def _load_mcp_config_file(self) -> Dict[str, Any]:
+    def _load_mcp_config_file(self) -> dict[str, Any]:
         """Load MCP configuration from YAML file.
 
         Returns:
@@ -509,7 +508,7 @@ class AgentConfigLoader:
         try:
             content = self.mcp_config_path.read_text(encoding="utf-8")
             config = yaml.safe_load(content)
-            
+
             # Expand environment variables in config
             return self._expand_env_vars(config)
         except yaml.YAMLError as e:
@@ -534,13 +533,15 @@ class AgentConfigLoader:
         elif isinstance(obj, str):
             # Match ${VAR_NAME} pattern
             pattern = re.compile(r"\$\{([^}]+)\}")
+
             def replace(match: re.Match) -> str:
                 var_name = match.group(1)
                 return os.environ.get(var_name, match.group(0))
+
             return pattern.sub(replace, obj)
         return obj
 
-    def _load_per_agent_config(self, agent_name: str) -> Dict[str, Any]:
+    def _load_per_agent_config(self, agent_name: str) -> dict[str, Any]:
         """Load per-agent configuration from config.yaml.
 
         Args:
@@ -567,7 +568,7 @@ class AgentConfigLoader:
             logger.error(f"Failed to parse config.yaml for {agent_name}: {e}")
             return {"skills": [], "tools": [], "rules": [], "mcp_servers": []}
 
-    def _get_agent_extended_config(self, agent_name: str) -> Dict[str, Any]:
+    def _get_agent_extended_config(self, agent_name: str) -> dict[str, Any]:
         """Get extended configuration (skills/rules/mcp) for an agent.
 
         Reads from the agent's own config.yaml file.
@@ -581,9 +582,8 @@ class AgentConfigLoader:
         return self._load_per_agent_config(agent_name)
 
 
-
 # Singleton instance for global access
-_default_loader: Optional[AgentConfigLoader] = None
+_default_loader: AgentConfigLoader | None = None
 
 
 def get_agent_config_loader() -> AgentConfigLoader:

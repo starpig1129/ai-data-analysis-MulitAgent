@@ -1,4 +1,3 @@
-from __future__ import annotations
 """Base agent class with external configuration support.
 
 This module provides the abstract base class for all agents in the system.
@@ -6,19 +5,20 @@ It integrates with the AgentConfigLoader for external system prompts and
 supports fallback to hardcoded prompts for backward compatibility.
 """
 
-import os
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from langchain_openai import ChatOpenAI
 from langchain.agents import create_agent
+from langchain_openai import ChatOpenAI
 
-from ..logger import setup_logger
 from ..config import WORKING_DIRECTORY
+from ..logger import setup_logger
 
 if TYPE_CHECKING:
-    from ..core.language_models import LanguageModelManager
     from ..core.agent_config_loader import AgentConfigLoader
+    from ..core.language_models import LanguageModelManager
 
 logger = setup_logger()
 
@@ -37,7 +37,6 @@ class BaseAgent(ABC):
         response_format: Optional format specification for structured output.
     """
 
-
     # Constants
     SYSTEM_PROMPT_PREFIX = "SYSTEM_PROMPT:"
 
@@ -53,6 +52,7 @@ class BaseAgent(ABC):
         """
         if cls._config_loader is None:
             from ..core.agent_config_loader import AgentConfigLoader
+
             cls._config_loader = AgentConfigLoader()
         return cls._config_loader
 
@@ -62,7 +62,7 @@ class BaseAgent(ABC):
         language_model_manager: LanguageModelManager,
         team_members: list[str],
         working_directory: str = WORKING_DIRECTORY,
-        response_format: Any = None
+        response_format: Any = None,
     ) -> None:
         """Initialize the base agent with common creation logic.
 
@@ -84,13 +84,13 @@ class BaseAgent(ABC):
 
         # Load system prompt (external config → fallback to hardcoded)
         role_prompt = self._load_system_prompt()
-        
+
         # Load all tools in priority order
         tools = self._load_all_tools()
 
         # Get agent-specific runtime config
         agent_config = self.language_model_manager.get_agent_config(self.agent_name)
-        self.max_iterations = agent_config.get('max_iterations', 15)
+        self.max_iterations = agent_config.get("max_iterations", 15)
 
         # Create the agent executor
         self.agent = self._create_base_agent(
@@ -104,26 +104,30 @@ class BaseAgent(ABC):
 
     def _load_all_tools(self) -> list[Any]:
         """Load all tools from various sources in priority order.
-        
+
         Attempts external config tools first, falls back to hardcoded tools
         if config is empty, then appends skill tools and MCP tools.
-        
+
         Returns:
             Combined list of all available tools.
         """
         tools: list[Any] = []
-        
+
         # Load from external config first
         config_tools = self._load_tools_from_config()
         if config_tools:
             tools.extend(config_tools)
-            logger.info(f"Loaded {len(config_tools)} tools from config for {self.agent_name}")
+            logger.info(
+                f"Loaded {len(config_tools)} tools from config for {self.agent_name}"
+            )
         else:
             # Fallback to hardcoded tools
             hardcoded_tools = self._get_tools()
             if hardcoded_tools:
                 tools.extend(hardcoded_tools)
-                logger.debug(f"Using {len(hardcoded_tools)} hardcoded tools for {self.agent_name}")
+                logger.debug(
+                    f"Using {len(hardcoded_tools)} hardcoded tools for {self.agent_name}"
+                )
 
         # Append skill tools if configured
         try:
@@ -131,6 +135,7 @@ class BaseAgent(ABC):
             metadata = loader.load_metadata(self.agent_name)
             if metadata.skills:
                 from ..tools.skills import LookupSkill
+
                 tools.append(LookupSkill())
                 logger.info(f"Added LookupSkill tool for {self.agent_name}")
         except Exception as e:
@@ -141,7 +146,7 @@ class BaseAgent(ABC):
         if mcp_tools:
             tools.extend(mcp_tools)
             logger.info(f"Loaded {len(mcp_tools)} MCP tools for {self.agent_name}")
-        
+
         return tools
 
     def _load_tools_from_config(self) -> list[Any]:
@@ -153,15 +158,18 @@ class BaseAgent(ABC):
         try:
             loader = self.get_config_loader()
             metadata = loader.load_metadata(self.agent_name)
-            
+
             if not metadata.tools:
                 return []
-                
+
             from ..tools.factory import ToolFactory
+
             tools = ToolFactory.get_tools(metadata.tools)
             return tools
         except Exception as e:
-            logger.warning(f"Failed to load tools from config for {self.agent_name}: {e}")
+            logger.warning(
+                f"Failed to load tools from config for {self.agent_name}: {e}"
+            )
             return []
 
     def _load_mcp_tools(self) -> list[Any]:
@@ -182,6 +190,7 @@ class BaseAgent(ABC):
                 return []
 
             from ..tools.factory import ToolFactory
+
             mcp_tools = ToolFactory.get_mcp_tools(server_names)
             return mcp_tools
         except Exception as e:
@@ -206,7 +215,7 @@ class BaseAgent(ABC):
             team_members: List of team member roles for collaboration.
             response_format: Optional format specification for structured output.
         """
-        
+
         # Prepare system prompt
         tool_names = ", ".join([tool.name for tool in tools])
         team_members_str = ", ".join(team_members)
@@ -214,7 +223,7 @@ class BaseAgent(ABC):
         # Check if role_prompt contains a complete system prompt
         if role_prompt.startswith(self.SYSTEM_PROMPT_PREFIX):
             # Use the complete system prompt directly (remove the prefix)
-            system_prompt = role_prompt[len(self.SYSTEM_PROMPT_PREFIX):]
+            system_prompt = role_prompt[len(self.SYSTEM_PROMPT_PREFIX) :]
         else:
             # Use the existing system prompt composition logic
             system_prompt = (
@@ -246,7 +255,7 @@ class BaseAgent(ABC):
             agent.max_iterations = max_iterations
             logger.info(f"Set max_iterations={max_iterations} for {self.agent_name}")
         else:
-             pass
+            pass
 
         logger.info(f"{self.agent_name} created successfully")
         return agent
@@ -260,11 +269,11 @@ class BaseAgent(ABC):
         provider = self.language_model_manager.get_provider(self.agent_name)
         model_class = provider.get_model_class()
         config = self.language_model_manager.get_model_config(self.agent_name).copy()
-        
+
         # Add a default timeout to prevent indefinite hanging
         if "timeout" not in config:
             config["timeout"] = 60
-            
+
         return model_class(**config)
 
     def invoke(self, state: Any) -> Any:
@@ -330,17 +339,17 @@ class BaseAgent(ABC):
 
     def get_state_updates(self, state: Any, output: Any) -> dict[str, Any]:
         """Return state field updates based on agent output.
-        
+
         Default implementation returns empty dict (no custom updates).
         Subclasses can override to provide custom state mapping.
-        
+
         This method implements the StateUpdater protocol, allowing agents
         to decouple their state update logic from the central agent_node.
-        
+
         Args:
             state: The current workflow state.
             output: The agent's structured or raw output.
-            
+
         Returns:
             Dict mapping state field names to their new values.
         """

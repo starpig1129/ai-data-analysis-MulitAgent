@@ -250,6 +250,20 @@ DATAGEN implements a powerful **Progressive Disclosure** architecture for agent 
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
+### Development checks
+
+CI runs these on every pull request. Run them locally before pushing:
+
+```bash
+pip install -r requirements.txt -r requirements-dev.txt
+ruff check main.py src tests
+ruff format --check main.py src tests
+mypy
+pytest
+```
+
+`ruff format main.py src tests` fixes formatting. To hide the one-time formatting commit from `git blame`, run `git config blame.ignoreRevsFile .git-blame-ignore-revs`.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

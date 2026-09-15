@@ -247,6 +247,20 @@ DATAGEN 實現了強大的**漸進式揭露**架構用於代理配置，靈感�
 
 歡迎提交 Pull Request。對於重大更改，請先開啟 Issue 討論您想要更改的內容。
 
+### 開發檢查
+
+CI 會在每個 Pull Request 上執行以下檢查，推送前請先在本機執行：
+
+```bash
+pip install -r requirements.txt -r requirements-dev.txt
+ruff check main.py src tests
+ruff format --check main.py src tests
+mypy
+pytest
+```
+
+`ruff format main.py src tests` 可自動修正格式。若要在 `git blame` 中略過一次性的格式化 commit，請執行 `git config blame.ignoreRevsFile .git-blame-ignore-revs`。
+
 ## 授權
 
 本專案採用 MIT 授權 - 詳見 [LICENSE](../../LICENSE) 文件。

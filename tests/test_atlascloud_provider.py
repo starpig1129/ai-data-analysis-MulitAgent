@@ -1,12 +1,9 @@
 """Tests for the optional Atlas Cloud LLM provider."""
 
-import sys
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from pydantic import SecretStr
 
 from src.llm.atlascloud import AtlasCloudChatOpenAI, AtlasCloudProvider
 from src.llm.factory import ProviderFactory
@@ -30,11 +27,24 @@ def test_atlascloud_model_uses_compatible_endpoint_with_default_retries(
         AtlasCloudChatOpenAI(model="openai/gpt-5.4", temperature=1.0)
 
     init.assert_called_once_with(
-        api_key="test-key",
+        api_key=SecretStr("test-key"),
         model="openai/gpt-5.4",
         temperature=1.0,
         base_url="https://api.atlascloud.ai/v1",
     )
+
+
+def test_atlascloud_model_accepts_secretstr_api_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A SecretStr api_key is passed through as-is, not double-wrapped."""
+    monkeypatch.delenv("ATLASCLOUD_API_KEY", raising=False)
+
+    with patch("src.llm.atlascloud.ChatOpenAI.__init__", return_value=None) as init:
+        AtlasCloudChatOpenAI(model="openai/gpt-5.4", api_key=SecretStr("test-key"))
+
+    passed_api_key = init.call_args.kwargs["api_key"]
+    assert passed_api_key.get_secret_value() == "test-key"
 
 
 def test_atlascloud_model_requires_api_key(monkeypatch: pytest.MonkeyPatch) -> None:

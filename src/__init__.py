@@ -1,2 +1,3 @@
-from . import logger
-from . import config
+from . import config, logger
+
+__all__ = ["config", "logger"]

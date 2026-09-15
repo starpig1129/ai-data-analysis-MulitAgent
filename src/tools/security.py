@@ -11,8 +11,7 @@ import subprocess
 import threading
 import time
 from dataclasses import dataclass, field
-from queue import Queue, Empty
-from typing import List, Optional
+from queue import Empty, Queue
 
 from ..logger import setup_logger
 from .tool_config import TOOL_CONFIG
@@ -26,20 +25,21 @@ DEFAULT_POLL_INTERVAL_SECONDS = 0.1
 @dataclass
 class ScanResult:
     """Result of security scan.
-    
+
     Attributes:
         is_safe: Whether the code passed security checks.
         violations: List of security violations found.
         warnings: Non-blocking warnings (e.g., risky imports).
     """
+
     is_safe: bool
-    violations: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    violations: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
 
 class SecurityScanner:
     """Static analysis for dangerous code patterns.
-    
+
     Uses both regex pattern matching and AST analysis to detect
     potentially dangerous code before execution.
     """
@@ -48,10 +48,12 @@ class SecurityScanner:
     DANGEROUS_BUILTINS: frozenset = frozenset({"eval", "exec", "compile", "__import__"})
 
     # Risky modules that warrant warnings (immutable)
-    RISKY_MODULES: frozenset = frozenset({"os", "subprocess", "shutil", "socket", "ctypes"})
+    RISKY_MODULES: frozenset = frozenset(
+        {"os", "subprocess", "shutil", "socket", "ctypes"}
+    )
 
     # Pre-compiled pattern for faster matching (built on first use)
-    _compiled_pattern: Optional[re.Pattern] = None
+    _compiled_pattern: re.Pattern | None = None
 
     @classmethod
     def _get_blocked_pattern(cls) -> re.Pattern:
@@ -60,16 +62,16 @@ class SecurityScanner:
             patterns = TOOL_CONFIG.execution.blocked_patterns
             # Escape special regex chars and join with |
             escaped = [re.escape(p) for p in patterns]
-            cls._compiled_pattern = re.compile('|'.join(escaped))
+            cls._compiled_pattern = re.compile("|".join(escaped))
         return cls._compiled_pattern
 
     @classmethod
     def scan_code(cls, code: str) -> ScanResult:
         """Scan code for security violations.
-        
+
         Args:
             code: Python source code to scan.
-            
+
         Returns:
             ScanResult with safety status and any violations/warnings.
         """
@@ -101,10 +103,10 @@ class SecurityScanner:
     @classmethod
     def _analyze_ast(cls, tree: ast.AST) -> tuple:
         """Analyze AST for dangerous patterns (single-pass).
-        
+
         Args:
             tree: Parsed AST tree.
-            
+
         Returns:
             Tuple of (violations, warnings).
         """
@@ -125,7 +127,7 @@ class SecurityScanner:
                         warnings.append(f"Risky module import: {alias.name}")
 
             elif isinstance(node, ast.ImportFrom):
-                if node.module and node.module.split('.')[0] in cls.RISKY_MODULES:
+                if node.module and node.module.split(".")[0] in cls.RISKY_MODULES:
                     warnings.append(f"Risky module import: {node.module}")
 
             # Check for attribute access on risky patterns
@@ -140,14 +142,14 @@ class SecurityScanner:
 
 def _enqueue_output(pipe, queue: Queue, stop_event: threading.Event) -> None:
     """Read lines from pipe and put them in queue (runs in thread).
-    
+
     Args:
         pipe: stdout or stderr pipe from subprocess.
         queue: Queue to put lines into.
         stop_event: Event to signal thread to stop.
     """
     try:
-        for line in iter(pipe.readline, ''):
+        for line in iter(pipe.readline, ""):
             if stop_event.is_set():
                 break
             if line:
@@ -160,24 +162,24 @@ def _enqueue_output(pipe, queue: Queue, stop_event: threading.Event) -> None:
 
 class ResourceLimiter:
     """Execute code with user-controlled resource limits.
-    
+
     Supports:
     - Fixed timeout: Kill after N seconds
     - Progress-based timeout: Kill only if no stdout for N seconds
     - Memory limit: Set via resource.setrlimit (Linux only)
-    
+
     Uses threading for cross-platform non-blocking stdout reading.
     """
 
     def __init__(
         self,
-        timeout: Optional[int] = None,
-        memory_mb: Optional[int] = None,
-        max_output_chars: Optional[int] = None,
-        progress_timeout: Optional[int] = None,
+        timeout: int | None = None,
+        memory_mb: int | None = None,
+        max_output_chars: int | None = None,
+        progress_timeout: int | None = None,
     ):
         """Initialize resource limiter.
-        
+
         Args:
             timeout: Fixed timeout in seconds. None = no limit.
             memory_mb: Memory limit in MB (Linux only). None = no limit.
@@ -186,27 +188,29 @@ class ResourceLimiter:
         """
         self.timeout = timeout
         self.memory_mb = memory_mb
-        self.max_output_chars = max_output_chars or TOOL_CONFIG.execution.max_output_chars
+        self.max_output_chars = (
+            max_output_chars or TOOL_CONFIG.execution.max_output_chars
+        )
         self.progress_timeout = progress_timeout
 
     def execute(
         self,
-        command: List[str],
+        command: list[str],
         cwd: str,
         shell: bool = False,
-        executable: Optional[str] = None,
+        executable: str | None = None,
     ) -> subprocess.CompletedProcess:
         """Execute command with resource limits.
-        
+
         Args:
             command: Command to execute (list or string if shell=True).
             cwd: Working directory.
             shell: Whether to use shell execution.
             executable: Shell executable (e.g., /bin/bash).
-            
+
         Returns:
             CompletedProcess with stdout/stderr.
-            
+
         Raises:
             TimeoutError: If execution exceeds timeout limits.
         """
@@ -248,12 +252,12 @@ class ResourceLimiter:
         stdout_thread = threading.Thread(
             target=_enqueue_output,
             args=(process.stdout, stdout_queue, stop_event),
-            daemon=True
+            daemon=True,
         )
         stderr_thread = threading.Thread(
             target=_enqueue_output,
             args=(process.stderr, stderr_queue, stop_event),
-            daemon=True
+            daemon=True,
         )
         stdout_thread.start()
         stderr_thread.start()
@@ -275,7 +279,7 @@ class ResourceLimiter:
                     stop_event.set()
                     stdout_thread.join(timeout=1.0)
                     stderr_thread.join(timeout=1.0)
-                    
+
                     while not stdout_queue.empty():
                         try:
                             stdout_lines.append(stdout_queue.get_nowait())
@@ -327,8 +331,8 @@ class ResourceLimiter:
         result = subprocess.CompletedProcess(
             args=command,
             returncode=return_code,
-            stdout=''.join(stdout_lines),
-            stderr=''.join(stderr_lines),
+            stdout="".join(stdout_lines),
+            stderr="".join(stderr_lines),
         )
 
         return self._truncate_output(result)
@@ -336,26 +340,25 @@ class ResourceLimiter:
     def _create_preexec_fn(self):
         """Create preexec function for memory limiting (Linux only)."""
         memory_mb = self.memory_mb
-        
+
         def set_limits():
             try:
                 import resource
+
                 memory_bytes = memory_mb * 1024 * 1024
                 resource.setrlimit(resource.RLIMIT_AS, (memory_bytes, memory_bytes))
             except (ImportError, ValueError, OSError):
                 pass  # Not available on this platform
-        
+
         return set_limits
 
     def _truncate_output(
-        self, 
-        result: subprocess.CompletedProcess
+        self, result: subprocess.CompletedProcess
     ) -> subprocess.CompletedProcess:
         """Truncate output if it exceeds max_output_chars."""
         if self.max_output_chars and len(result.stdout) > self.max_output_chars:
             result.stdout = (
-                result.stdout[:self.max_output_chars] +
-                f"\n\n... [OUTPUT TRUNCATED at {self.max_output_chars} chars]"
+                result.stdout[: self.max_output_chars]
+                + f"\n\n... [OUTPUT TRUNCATED at {self.max_output_chars} chars]"
             )
         return result
-

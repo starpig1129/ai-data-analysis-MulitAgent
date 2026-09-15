@@ -1,12 +1,9 @@
 """Tests for the optional OrcaRouter LLM provider."""
 
-import sys
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from pydantic import SecretStr
 
 from src.llm.factory import ProviderFactory
 from src.llm.orcarouter import OrcaRouterChatOpenAI, OrcaRouterProvider
@@ -30,11 +27,26 @@ def test_orcarouter_model_uses_gateway_endpoint(
         OrcaRouterChatOpenAI(model="orcarouter/fusion-mini", temperature=1.0)
 
     init.assert_called_once_with(
-        api_key="test-key",
+        api_key=SecretStr("test-key"),
         model="orcarouter/fusion-mini",
         temperature=1.0,
         base_url="https://api.orcarouter.ai/v1",
     )
+
+
+def test_orcarouter_model_accepts_secretstr_api_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A SecretStr api_key is passed through as-is, not double-wrapped."""
+    monkeypatch.delenv("ORCAROUTER_API_KEY", raising=False)
+
+    with patch("src.llm.orcarouter.ChatOpenAI.__init__", return_value=None) as init:
+        OrcaRouterChatOpenAI(
+            model="orcarouter/fusion-mini", api_key=SecretStr("test-key")
+        )
+
+    passed_api_key = init.call_args.kwargs["api_key"]
+    assert passed_api_key.get_secret_value() == "test-key"
 
 
 def test_orcarouter_model_requires_its_own_api_key(

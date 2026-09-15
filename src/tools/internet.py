@@ -1,20 +1,26 @@
+from typing import Annotated
+
+from bs4 import BeautifulSoup
+from langchain_community.document_loaders import FireCrawlLoader, WebBaseLoader
 from langchain_core.tools import tool
-from langchain_community.document_loaders import WebBaseLoader, FireCrawlLoader
+
 # fastCRW (Firecrawl-compatible web scraper; single binary, self-host or cloud)
 from langchain_crw import CrwLoader
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from typing import Annotated, List
-from bs4 import BeautifulSoup
 
+from ..config import CHROMEDRIVER_PATH, CRW_API_KEY, CRW_API_URL, FIRECRAWL_API_KEY
 from ..logger import setup_logger
-from ..config import FIRECRAWL_API_KEY,CRW_API_KEY,CRW_API_URL,CHROMEDRIVER_PATH
+
 # Set up logger
 logger = setup_logger()
 
+
 @tool
-def google_search(query: Annotated[str, "The search query to use"]) -> Annotated[str, "The top 5 Google search results."]:
+def google_search(
+    query: Annotated[str, "The search query to use"],
+) -> Annotated[str, "The top 5 Google search results."]:
     """
     Perform a Google search based on the given query and return the top 5 results.
 
@@ -37,25 +43,28 @@ def google_search(query: Annotated[str, "The search query to use"]) -> Annotated
             driver.get(url)
             html = driver.page_source
 
-        soup = BeautifulSoup(html, 'html.parser')
-        search_results = soup.select('.g') 
+        soup = BeautifulSoup(html, "html.parser")
+        search_results = soup.select(".g")
         search = ""
         for result in search_results[:5]:
-            title_element = result.select_one('h3')
-            title = title_element.text if title_element else 'No Title'
-            snippet_element = result.select_one('.VwiC3b')
-            snippet = snippet_element.text if snippet_element else 'No Snippet'
-            link_element = result.select_one('a')
-            link = link_element['href'] if link_element else 'No Link'
+            title_element = result.select_one("h3")
+            title = title_element.text if title_element else "No Title"
+            snippet_element = result.select_one(".VwiC3b")
+            snippet = snippet_element.text if snippet_element else "No Snippet"
+            link_element = result.select_one("a")
+            link = link_element["href"] if link_element else "No Link"
             search += f"{title}\n{snippet}\n{link}\n\n"
 
         logger.info("Google search completed successfully")
         return search
     except Exception as e:
         logger.error(f"Error during Google search: {str(e)}")
-        return f'Error: {e}'
-\
-def _scrape_webpages(urls: Annotated[List[str], "List of URLs to scrape"]) -> Annotated[str, "The scraped content from WebBaseLoader."]:
+        return f"Error: {e}"
+
+
+def _scrape_webpages(
+    urls: Annotated[list[str], "List of URLs to scrape"],
+) -> Annotated[str, "The scraped content from WebBaseLoader."]:
     """
     Scrape the provided web pages for detailed information using WebBaseLoader.
 
@@ -65,14 +74,17 @@ def _scrape_webpages(urls: Annotated[List[str], "List of URLs to scrape"]) -> An
         logger.info(f"Scraping webpages: {urls}")
         loader = WebBaseLoader(urls)
         docs = loader.load()
-        content = "\n\n".join([f'\n{doc.page_content}\n' for doc in docs])
+        content = "\n\n".join([f"\n{doc.page_content}\n" for doc in docs])
         logger.info("Webpage scraping completed successfully")
         return content
     except Exception as e:
         logger.error(f"Error during webpage scraping: {str(e)}")
         raise  # Re-raise the exception to be caught by the calling function
 
-def _firecrawl_scrape_webpages(urls: Annotated[List[str], "List of URLs to scrape"]) -> Annotated[str, "The scraped content from FireCrawl."]:
+
+def _firecrawl_scrape_webpages(
+    urls: Annotated[list[str], "List of URLs to scrape"],
+) -> Annotated[str, "The scraped content from FireCrawl."]:
     """
     Scrape the provided web pages for detailed information using FireCrawlLoader.
 
@@ -86,11 +98,7 @@ def _firecrawl_scrape_webpages(urls: Annotated[List[str], "List of URLs to scrap
         logger.info(f"Scraping webpages using FireCrawl: {urls}")
         results = []
         for url in urls:
-            loader = FireCrawlLoader(
-                api_key=FIRECRAWL_API_KEY,
-                url=url,
-                mode="scrape"
-            )
+            loader = FireCrawlLoader(api_key=FIRECRAWL_API_KEY, url=url, mode="scrape")
             res = loader.load()
             # Normalize different possible return types from the loader
             if isinstance(res, list):
@@ -107,7 +115,11 @@ def _firecrawl_scrape_webpages(urls: Annotated[List[str], "List of URLs to scrap
     except Exception as e:
         logger.error(f"Error during FireCrawl scraping: {str(e)}")
         raise  # Re-raise the exception to be caught by the calling function
-def _crw_scrape_webpages(urls: Annotated[List[str], "List of URLs to scrape"]) -> Annotated[str, "The scraped content from fastCRW."]:
+
+
+def _crw_scrape_webpages(
+    urls: Annotated[list[str], "List of URLs to scrape"],
+) -> Annotated[str, "The scraped content from fastCRW."]:
     """
     Scrape the provided web pages for detailed information using fastCRW.
 
@@ -120,10 +132,7 @@ def _crw_scrape_webpages(urls: Annotated[List[str], "List of URLs to scrape"]) -
         results = []
         for url in urls:
             loader = CrwLoader(
-                api_key=CRW_API_KEY,
-                api_url=CRW_API_URL,
-                url=url,
-                mode="scrape"
+                api_key=CRW_API_KEY, api_url=CRW_API_URL, url=url, mode="scrape"
             )
             res = loader.load()
             # Normalize different possible return types from the loader
@@ -141,8 +150,12 @@ def _crw_scrape_webpages(urls: Annotated[List[str], "List of URLs to scrape"]) -
     except Exception as e:
         logger.error(f"Error during fastCRW scraping: {str(e)}")
         raise  # Re-raise the exception to be caught by the calling function
+
+
 @tool
-def scrape_webpages(urls: Annotated[List[str], "List of URLs to scrape"]) -> Annotated[str, "The scraped content from fastCRW, FireCrawl or WebBaseLoader."]:
+def scrape_webpages(
+    urls: Annotated[list[str], "List of URLs to scrape"],
+) -> Annotated[str, "The scraped content from fastCRW, FireCrawl or WebBaseLoader."]:
     """
     Attempt to scrape webpages using fastCRW, falling back to FireCrawl then WebBaseLoader if unsuccessful.
     """
@@ -153,11 +166,14 @@ def scrape_webpages(urls: Annotated[List[str], "List of URLs to scrape"]) -> Ann
     try:
         return _firecrawl_scrape_webpages(urls)
     except Exception as e:
-        logger.warning(f"FireCrawl scraping failed: {str(e)}. Falling back to WebBaseLoader.")
+        logger.warning(
+            f"FireCrawl scraping failed: {str(e)}. Falling back to WebBaseLoader."
+        )
         try:
             return _scrape_webpages(urls)
         except Exception as e:
             logger.error(f"Both scraping methods failed. Error: {str(e)}")
             return f"Error: Unable to scrape webpages using both methods. {str(e)}"
+
 
 logger.info("Web scraping tools initialized")

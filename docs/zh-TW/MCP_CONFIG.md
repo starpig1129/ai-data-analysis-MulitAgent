@@ -17,7 +17,7 @@ MCP (Model Context Protocol) 是一種標準化協議，允許 Agent 安全地�
 ### 必要依賴
 
 ```bash
-pip install mcp>=1.0.0
+pip install -r requirements.txt
 ```
 
 ### Node.js
