@@ -1,0 +1,39 @@
+{
+  "run_id": "datagen-research-clean",
+  "steps": [
+    {"type": "message", "role": "user",
+     "content": "Research solid-state battery advances and save a short report."},
+
+    {"type": "tool_call", "call_id": "s1", "name": "google_search",
+     "args": {"query": "solid state battery breakthroughs 2024"}},
+    {"type": "tool_result", "call_id": "s1", "status": "ok",
+     "content": "1. QuantumScape milestones  2. Toyota roadmap  3. Sulfide electrolytes"},
+
+    {"type": "tool_call", "call_id": "s2", "name": "google_search",
+     "args": {"query": "solid state battery manufacturing scale 2024"}},
+    {"type": "tool_result", "call_id": "s2", "status": "ok",
+     "content": "1. Pilot production lines  2. Cost-per-kWh curve  3. Yield challenges"},
+
+    {"type": "tool_call", "call_id": "s3", "name": "google_search",
+     "args": {"query": "solid state battery thermal safety comparison"}},
+    {"type": "tool_result", "call_id": "s3", "status": "ok",
+     "content": "1. Reduced thermal runaway  2. Dendrite suppression"},
+
+    {"type": "tool_call", "call_id": "p1", "name": "scrape_webpages",
+     "args": {"urls": ["https://example.com/battery-review"]}},
+    {"type": "tool_result", "call_id": "p1", "status": "error", "error": "Timeout"},
+
+    {"type": "tool_call", "call_id": "p2", "name": "scrape_webpages",
+     "args": {"urls": ["https://example.com/battery-review"]}},
+    {"type": "tool_result", "call_id": "p2", "status": "ok",
+     "content": "Full review: energy density, cycle life, and manufacturing outlook."},
+
+    {"type": "tool_call", "call_id": "w1", "name": "write_document",
+     "args": {"points": ["Solid-state batteries improve energy density",
+                          "Manufacturing is beginning to scale"],
+              "file_name": "battery_report.md"}},
+    {"type": "tool_result", "call_id": "w1", "status": "ok",
+     "content": "Document written to battery_report.md"}
+  ],
+  "final": "Saved the solid-state battery report to battery_report.md."
+}

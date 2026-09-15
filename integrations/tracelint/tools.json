@@ -1,0 +1,15 @@
+{
+  "tools": {
+    "google_search":   { "metadata": { "side_effecting": false } },
+    "scrape_webpages": { "metadata": { "side_effecting": false } },
+    "collect_data":    { "metadata": { "side_effecting": false } },
+    "read_document":   { "metadata": { "side_effecting": false } },
+    "list_directory":  { "metadata": { "side_effecting": false } },
+
+    "create_document": { "metadata": { "side_effecting": true, "idempotent": false } },
+    "write_document":  { "metadata": { "side_effecting": true, "idempotent": false } },
+    "edit_document":   { "metadata": { "side_effecting": true, "idempotent": false } },
+    "execute_code":    { "metadata": { "side_effecting": true, "idempotent": false } },
+    "execute_command": { "metadata": { "side_effecting": true, "idempotent": false } }
+  }
+}
