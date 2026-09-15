@@ -34,6 +34,19 @@ def test_atlascloud_model_uses_compatible_endpoint_with_default_retries(
     )
 
 
+def test_atlascloud_model_accepts_secretstr_api_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A SecretStr api_key is passed through as-is, not double-wrapped."""
+    monkeypatch.delenv("ATLASCLOUD_API_KEY", raising=False)
+
+    with patch("src.llm.atlascloud.ChatOpenAI.__init__", return_value=None) as init:
+        AtlasCloudChatOpenAI(model="openai/gpt-5.4", api_key=SecretStr("test-key"))
+
+    passed_api_key = init.call_args.kwargs["api_key"]
+    assert passed_api_key.get_secret_value() == "test-key"
+
+
 def test_atlascloud_model_requires_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
     """A missing ATLASCLOUD_API_KEY raises instead of silently using another key."""
     monkeypatch.delenv("ATLASCLOUD_API_KEY", raising=False)

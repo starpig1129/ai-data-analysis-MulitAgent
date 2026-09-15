@@ -35,7 +35,9 @@ class OrcaRouterChatOpenAI(ChatOpenAI):
             )
 
         kwargs.setdefault("base_url", ORCAROUTER_BASE_URL)
-        super().__init__(api_key=SecretStr(api_key), **kwargs)
+        if isinstance(api_key, str):
+            api_key = SecretStr(api_key)
+        super().__init__(api_key=api_key, **kwargs)
 
 
 class OrcaRouterProvider(BaseProvider):

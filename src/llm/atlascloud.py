@@ -30,7 +30,9 @@ class AtlasCloudChatOpenAI(ChatOpenAI):
             )
 
         kwargs.setdefault("base_url", "https://api.atlascloud.ai/v1")
-        super().__init__(api_key=SecretStr(api_key), **kwargs)
+        if isinstance(api_key, str):
+            api_key = SecretStr(api_key)
+        super().__init__(api_key=api_key, **kwargs)
 
 
 class AtlasCloudProvider(BaseProvider):
