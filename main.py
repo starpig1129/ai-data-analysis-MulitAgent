@@ -42,8 +42,16 @@ sys.stderr = OutputFilter(
 logger = logging.getLogger("src")
 
 
-def run_mcp_loop(loop):
-    """Run the background event loop for MCP connections."""
+def run_mcp_loop(loop: asyncio.AbstractEventLoop) -> None:
+    """Runs an asyncio event loop forever in the current (background) thread.
+
+    Installs ``loop`` as the current thread's event loop and blocks running
+    it until it is stopped, keeping persistent MCP client connections alive
+    for the lifetime of the process.
+
+    Args:
+        loop: The event loop to install and run.
+    """
     asyncio.set_event_loop(loop)
     try:
         loop.run_forever()
@@ -52,7 +60,7 @@ def run_mcp_loop(loop):
 
 
 def main() -> None:
-    """Main entry point"""
+    """Sets up logging and a background MCP event loop, then runs the multi-agent system on a sample data-analysis prompt."""
     from src.core.mcp_manager import get_mcp_manager
     from src.logger import setup_logger
 
