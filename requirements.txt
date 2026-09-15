@@ -9,7 +9,7 @@ langchain-groq==1.0.0
 arxiv==3.0.0
 beautifulsoup4==4.14.2
 langgraph==1.2.4
-pandas==2.3.3
+pandas==3.0.5
 python-dotenv==1.2.3
 selenium==4.37.0
 wikipedia==1.4.0
