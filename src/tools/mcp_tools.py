@@ -15,7 +15,7 @@ Example:
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Optional
+from typing import Any
 
 from langchain.tools import BaseTool
 from pydantic import BaseModel, Field, create_model
@@ -59,7 +59,7 @@ def _create_args_schema(
 
         # Handle optional types
         if prop_name not in required:
-            python_type = Optional[python_type]
+            python_type = python_type | None
 
         field_definitions[prop_name] = (
             python_type,

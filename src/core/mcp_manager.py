@@ -1,3 +1,10 @@
+"""This module provides management of MCP server connections and tool exposure
+for agents. It uses the official MCP Python SDK for real server communication
+via stdio transport.
+
+Reference: https://modelcontextprotocol.io/
+"""
+
 from __future__ import annotations
 
 import asyncio
@@ -11,14 +18,6 @@ from typing import Any
 
 import anyio
 import yaml
-
-"""This module provides management of MCP server connections and tool exposure
-for agents. It uses the official MCP Python SDK for real server communication
-via stdio transport.
-
-Reference: https://modelcontextprotocol.io/
-"""
-
 
 from ..logger import setup_logger
 

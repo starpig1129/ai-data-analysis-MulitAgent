@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 import sys
 import threading
@@ -36,16 +37,9 @@ sys.stderr = OutputFilter(
     ],
 )
 
-from src.core.mcp_manager import get_mcp_manager
-from src.logger import setup_logger
-
-# Initialize the robust logger first thing
-logger = setup_logger()
-warnings.filterwarnings("ignore")
-
-from src.system import MultiAgentSystem
-
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+# Configured by setup_logger() in main(). The src modules are imported inside
+# main() so the stderr filter above is installed before any of them load.
+logger = logging.getLogger("src")
 
 
 def run_mcp_loop(loop):
@@ -57,8 +51,19 @@ def run_mcp_loop(loop):
         logger.error(f"MCP background loop error: {e}")
 
 
-def main():
+def main() -> None:
     """Main entry point"""
+    from src.core.mcp_manager import get_mcp_manager
+    from src.logger import setup_logger
+
+    # Initialize the robust logger first thing
+    setup_logger()
+    # Pre-existing runtime warning suppression (unchanged behavior, only moved
+    # into main() per task-4-brief.md Step 8); not a test assertion or check.
+    warnings.filterwarnings("ignore")
+
+    from src.system import MultiAgentSystem
+
     # Create and start a background event loop for persistent MCP connections
     mcp_loop = asyncio.new_event_loop()
     mcp_thread = threading.Thread(target=run_mcp_loop, args=(mcp_loop,), daemon=True)

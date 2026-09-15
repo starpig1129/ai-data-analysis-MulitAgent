@@ -1,11 +1,11 @@
-from __future__ import annotations
-
 """Base agent class with external configuration support.
 
 This module provides the abstract base class for all agents in the system.
 It integrates with the AgentConfigLoader for external system prompts and
 supports fallback to hardcoded prompts for backward compatibility.
 """
+
+from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any

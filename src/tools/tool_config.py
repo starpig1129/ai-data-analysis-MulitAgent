@@ -1,10 +1,10 @@
-from __future__ import annotations
-
 """Centralized configuration for tool security and resource limits.
 
 This module provides dataclasses for tool limits and a configuration manager
 that loads settings from YAML with fallback to defaults.
 """
+
+from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
