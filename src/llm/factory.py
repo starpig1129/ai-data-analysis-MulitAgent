@@ -9,6 +9,7 @@ from .google import GoogleProvider
 from .groq import ChatGroqProvider
 from .ollama import OllamaProvider
 from .openai import OpenAIProvider
+from .orcarouter import OrcaRouterProvider
 
 if TYPE_CHECKING:
     from .base import BaseProvider
@@ -45,6 +46,8 @@ class ProviderFactory:
             return ChatGroqProvider()
         elif provider_name == "atlascloud":
             return AtlasCloudProvider()
+        elif provider_name == "orcarouter":
+            return OrcaRouterProvider()
         else:
             raise NotImplementedError(
                 f"Provider creation for '{provider_name}' is not implemented."

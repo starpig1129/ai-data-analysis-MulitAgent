@@ -194,7 +194,7 @@ agents:
       temperature: 1.0
 ```
 
-- **provider**：指定要使用的語言模型提供者（例如 openai、google、anthropic、ollama、groq、atlascloud）
+- **provider**：指定要使用的語言模型提供者（例如 openai、google、anthropic、ollama、groq、atlascloud、orcarouter）
 - **model_config**：包含模型特定的配置參數
   - `model`：要使用的特定模型名稱
   - `temperature`：控制模型輸出的隨機性（範圍：0.0-2.0）
