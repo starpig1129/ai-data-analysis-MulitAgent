@@ -113,6 +113,8 @@ OPENAI_API_KEY = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ANTHROPIC_API_KEY = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # Google API key (optional)
 GOOGLE_API_KEY = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+# Atlas Cloud API key (optional)
+ATLASCLOUD_API_KEY = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 # LangChain API key (optional)
 # Used for monitoring the processing
@@ -194,10 +196,20 @@ agents:
       temperature: 1.0
 ```
 
-- **provider**: Specifies the language model provider to use (e.g., openai, google, anthropic, ollama, groq)
+- **provider**: Specifies the language model provider to use (e.g., openai, google, anthropic, ollama, groq, atlascloud)
 - **model_config**: Contains model-specific configuration parameters
   - `model`: The specific model name to use
   - `temperature`: Controls the randomness of model output (range: 0.0-2.0)
+
+The `atlascloud` provider reads `ATLASCLOUD_API_KEY` and uses Atlas Cloud's OpenAI-compatible endpoint. Choose a model from the current Atlas Cloud model catalog, for example:
+
+```yaml
+  report_agent:
+    provider: atlascloud
+    model_config:
+      model: openai/gpt-5.4
+      temperature: 1.0
+```
 
 ## Advanced Configuration System
 

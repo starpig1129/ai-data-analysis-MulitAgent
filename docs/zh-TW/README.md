@@ -111,6 +111,8 @@ OPENAI_API_KEY = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ANTHROPIC_API_KEY = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # Google API 金鑰（可選）
 GOOGLE_API_KEY = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+# Atlas Cloud API 金鑰（可選）
+ATLASCLOUD_API_KEY = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 # LangChain API 金鑰（可選）
 # 用於監控處理過程
@@ -192,10 +194,20 @@ agents:
       temperature: 1.0
 ```
 
-- **provider**：指定要使用的語言模型提供者（例如 openai、google、anthropic、ollama、groq）
+- **provider**：指定要使用的語言模型提供者（例如 openai、google、anthropic、ollama、groq、atlascloud）
 - **model_config**：包含模型特定的配置參數
   - `model`：要使用的特定模型名稱
   - `temperature`：控制模型輸出的隨機性（範圍：0.0-2.0）
+
+`atlascloud` 提供者會讀取 `ATLASCLOUD_API_KEY`，並使用 Atlas Cloud 的 OpenAI 相容端點。請從當前 Atlas Cloud 模型目錄選擇模型，例如：
+
+```yaml
+  report_agent:
+    provider: atlascloud
+    model_config:
+      model: openai/gpt-5.4
+      temperature: 1.0
+```
 
 ## 進階配置系統
 

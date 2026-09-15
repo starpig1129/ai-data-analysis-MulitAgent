@@ -1,11 +1,14 @@
 from __future__ import annotations
-from typing import Any, TYPE_CHECKING
-from .openai import OpenAIProvider
+
+from typing import TYPE_CHECKING, Any
+
 from .anthropic import AnthropicProvider
-from .google import GoogleProvider
-from .ollama import OllamaProvider
+from .atlascloud import AtlasCloudProvider
 from .azure import AzureChatOpenAIProvider
+from .google import GoogleProvider
 from .groq import ChatGroqProvider
+from .ollama import OllamaProvider
+from .openai import OpenAIProvider
 
 if TYPE_CHECKING:
     from .base import BaseProvider
@@ -40,5 +43,9 @@ class ProviderFactory:
             return AzureChatOpenAIProvider()
         elif provider_name == "groq":
             return ChatGroqProvider()
+        elif provider_name == "atlascloud":
+            return AtlasCloudProvider()
         else:
-            raise NotImplementedError(f"Provider creation for '{provider_name}' is not implemented.")
+            raise NotImplementedError(
+                f"Provider creation for '{provider_name}' is not implemented."
+            )
